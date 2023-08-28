@@ -170,6 +170,7 @@ def generate_overall_graph(period : str) -> str:
         fig.savefig("templates/month.png")
         return "templates/month.png"
 
+    # Graph of the past eight weeks
     elif period == 'week':
         today = datetime.today()
 
@@ -205,8 +206,37 @@ def generate_overall_graph(period : str) -> str:
         fig.savefig("templates/week.png", bbox_inches='tight')
         return "templates/week.png"
 
+    # Graph of the past 14 days
     elif period == 'day':
-        pass
+        today = datetime.today()
+
+        daily_totals = []
+        dates = []
+        for day in range(0, 15):
+
+            with open(spotify_times_path + f"{datetime.strftime(today, '%d-%m-%Y')}.json", 'r') as f:
+                report_data = json.loads(f.read())
+
+            daily_totals.append(msToHour(calculate_total_listening_time(report_data)))
+            dates.append(f'{today.day}')
+
+            today = today - timedelta(days=1)
+
+        dates = [a for a in reversed(dates)]
+        daily_totals = [a for a in reversed(daily_totals)]
+
+        fig, ax = plt.subplots()
+        ax.plot(dates, daily_totals)
+        ax.set(xlabel='Date', ylabel='time (hours)')
+        ax.grid()
+
+        for i, txt in enumerate(daily_totals):
+            ax.annotate(txt, (dates[i], daily_totals[i]))
+
+        fig.savefig("templates/day.png", bbox_inches='tight')
+        return "templates/day.png"
+
+
     else:
         return 'bad period'
 
@@ -384,4 +414,4 @@ def artist(artist : str):
 
 @app.route('/test/')
 def test():
-    return generate_overall_graph("week")
+    return generate_overall_graph("day")
