@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <header>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </header>
+  <body>
+    <a href=".." style="position:absolute;"><u><< back</u></a>
+    <div class="Artist">
+      <div class="Block">
+        <header>{{ artist_name }}</header>
+        <p>Total Listening Time: <u>{{ artist_listen_time[0] }} hours {{ artist_listen_time[1] }} minutes</u></p>
+      </div>
+    </div>
+    <div class="Artist">
+        <div class="Block">
+            <header style="color:#ed145b;">Top Albums</header>
+
+            {% for album in top_albums %}
+                <p>{{ loop.index }}. {{ album }} : {{ top_albums[album][0] }} hours {{ top_albums[album][1] }} minutes</p>
+            {% endfor %}
+
+        </div>
+        
+        <div class="Block">
+            <header style="color:#e67ae6;">Top Songs</header>
+
+            {% for song in top_songs %}
+                <p>{{ loop.index }}. {{ song }} : {{ top_songs[song][0] }} hours {{ top_songs[song][1] }} minutes</p>
+            {% endfor %}
+        </div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </header>
+    <body>
+        <div class="selector"><a href="{{ selector_links[0] }}"><u><< previous</u></a> <a href="{{ selector_links[1] }}"><u>next >></u></a></div>
+        <header>Total {{ month_name }} listening time: <u>{{ month_total[0] }} hours {{ month_total[1] }} minutes</u> </header>
+        <header>Artists Listened To: <u>{{ artist_total }}</u></header>
+        <br>
+        <div class="TopTen">
+            <header><b><u>Top Artists for {{ month_name }} {{ year }}</u></b></header>
+            {% for artist in data %}
+              <p>{{ loop.index }}. <a href="{{ data[artist][1] }}">{{ artist }}</a> : {{ data[artist][0][0] }} hours {{ data[artist][0][1] }} minutes</p>
+            {% endfor %}
+        </div>
+    </body>
+</html>

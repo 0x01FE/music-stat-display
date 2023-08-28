@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </header>
+    <body>
+        <header>Total listening time: <u>{{ total_time[0] }} hours {{ total_time[1] }} minutes</u> </header>
+        <header>Artists Listened To: <u>{{ artist_total }}</u></header>
+        <br>
+        <div class="TopTen">
+            <header><b><u>Top Artists</u></b></header>
+            {% for artist in data %}
+              <p>{{ loop.index }}. <a href="/overall/{{ data[artist][1] }}">{{ artist }}</a> : {{ data[artist][0][0] }} hours {{ data[artist][0][1] }} minutes</p>
+            {% endfor %}
+        </div>
+    </body>
+</html>

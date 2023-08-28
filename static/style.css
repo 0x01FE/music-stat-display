@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono');
+
+
+@font-face {
+    font-family:cyberpunkwaifus;
+    src:url(../CyberpunkWaifus.woff) format('woff');
+    font-weight:400;
+    font-style:normal
+  }
+
+html {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    /*font-family: 'IBM Plex Mono', sans-serif;*/
+    font-family:cyberpunkwaifus;
+    color: white;
+    background-color: black;
+    opacity: 0.9;
+    width: 99%;
+    height: 100%;
+    font-size: 19px;
+}
+
+.TopTen {
+    border-style: solid;
+    border-radius: 20px;
+    border-width: 5pt;
+    border-color: white;
+    padding: 20px;
+}   
+
+header {
+    font-size: 30px;
+    font-weight: 900;
+    padding-top: 10pt;
+}
+
+
+#Body div.Header2 {
+    padding-top: 10pt;
+    font-size: 18pt;
+}
+
+#Body div.Header2_u {
+    padding-top: 10pt;
+    font-size: 18pt;
+    text-decoration: underline;
+}
+
+#body div.TotalTime {
+    text-decoration: underline;
+}
+
+a {
+    color: #ed145b;
+    text-align: center;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #8b8fc6;
+}
+
+.selector {
+    color: #ed145b;
+    text-align: center;
+    text-decoration: none;
+}
+
+.selector:hover {
+    color: #8b8fc6;
+}
+
+
+.Artist {
+    text-align: center;
+}
+
+.Block {
+    width: 40%;
+    display: inline-block;
+    vertical-align: text-top;
+    text-align: left;
+    border-style: solid;
+    border-color: white;
+    padding: 10px;
+    margin: 20px;
+    margin-inline: 40px;
+}

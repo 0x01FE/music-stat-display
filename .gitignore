@@ -1,0 +1,7 @@
+__pycache__
+*.code-workspace
+config.ini
+reports/*
+.vscode
+jackson/*
+*.png
