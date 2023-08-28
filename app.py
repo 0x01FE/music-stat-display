@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect
 from datetime import datetime
+from datetime import timedelta
 import calendar
 import json
 from os.path import exists
@@ -77,11 +78,14 @@ def generate_listening_report(start : datetime, end : datetime) -> str:
                     report[artist.lower()]["overall"] += day_data[artist]["albums"][album]["songs"][song]
                     report[artist.lower()]["albums"][album]["overall"] += day_data[artist]["albums"][album]["songs"][song]
 
-    save_location = "reports/" + f'{datetime.strftime(start, "%d-%m-%Y")}-{datetime.strftime(end, "%d-%m-%Y")}.json'
-    with open(save_location, "w") as f:
-        f.write(json.dumps(report, indent=4))
+    if report:
+        save_location = "reports/" + f'{datetime.strftime(start, "%d-%m-%Y")}-{datetime.strftime(end, "%d-%m-%Y")}.json'
+        with open(save_location, "w") as f:
+            f.write(json.dumps(report, indent=4))
 
-    return save_location
+        return save_location
+    else:
+        return None
 
 '''
 takes in a period of time to use as the X-axis
@@ -163,11 +167,44 @@ def generate_overall_graph(period : str) -> str:
         for i, txt in enumerate(monthly_totals):
             ax.annotate(txt, (dates[i], monthly_totals[i]))
 
-        fig.savefig("month.png")
-        return 'a'
+        fig.savefig("templates/month.png")
+        return "templates/month.png"
 
     elif period == 'week':
-        pass
+        today = datetime.today()
+
+        weeks = []
+        end = today
+        for week in range(0, 9):
+            start = end - timedelta(days=7)
+            weeks.append((start, end))
+            end = start - timedelta(days=1)
+
+        weekly_totals = []
+        dates = []
+        for week in reversed(weeks):
+            report_path = generate_listening_report(week[0], week[1])
+
+            if not report_path:
+                continue
+
+            with open(report_path, 'r') as f:
+                report_data = json.loads(f.read())
+
+            weekly_totals.append(msToHour(calculate_total_listening_time(report_data)))
+            dates.append(f'{week[0].day}-{week[0].month}')
+
+        fig, ax = plt.subplots()
+        ax.plot(dates, weekly_totals)
+        ax.set(xlabel='Date', ylabel='time (hours)', title='Listening Time')
+        ax.grid()
+
+        for i, txt in enumerate(weekly_totals):
+            ax.annotate(txt, (dates[i], weekly_totals[i]))
+
+        fig.savefig("templates/week.png", bbox_inches='tight')
+        return "templates/week.png"
+
     elif period == 'day':
         pass
     else:
@@ -347,4 +384,4 @@ def artist(artist : str):
 
 @app.route('/test/')
 def test():
-    return generate_overall_graph("month")
+    return generate_overall_graph("week")
