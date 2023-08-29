@@ -10,31 +10,42 @@
     </div>
     <div class="Summary">
       <div class="SummaryBlock">
-        <header><a href="/overall/"><u>Top Artists</u></a></header>
+        <header><a href="/overall/artists/"><u>Top Artists</u></a></header>
         {% for artist in top_artists %}
           <p>{{ loop.index }}. <a href="/overall/{{ top_artists[artist][1] }}">{{ artist }}</a> : {{ top_artists[artist][0][0] }} hours {{ top_artists[artist][0][1] }} minutes</p>
         {% endfor %}
       </div>
       <div class="SummaryBlock">
-        <header><u>Top Albums</u></header>
+        <header><a href="/overall/albums"><u>Top Albums</u></a></header>
         {% for album in top_albums %}
-          <p>{{ loop.index }}. {{ album }} by {{ top_albums[album][1] }}: {{ top_albums[album][0][0] }} hours {{ top_albums[album][0][1] }} minutes</p>
+          <p>{{ loop.index }}. {{ album }} <u>by</u> <a href="/overall/{{ top_albums[album][2] }}">{{ top_albums[album][1] }}</a>: {{ top_albums[album][0][0] }} hours {{ top_albums[album][0][1] }} minutes</p>
         {% endfor %}
       </div>
       <div class="SummaryBlock">
-        <header><u>Top Songs</u></header>
+        <header><a href="/overall/songs/"><u>Top Songs</u></a></header>
         {% for song in top_songs %}
-          <p>{{ loop.index }}. {{ song }} by {{ top_songs[song][1] }}: {{ top_songs[song][0][0] }} hours {{ top_songs[song][0][1] }} minutes</p>
+          <p>{{ loop.index }}. {{ song }} <u>by</u> <a href="/overall/{{ top_songs[song][2] }}">{{ top_songs[song][1] }}</a>: {{ top_songs[song][0][0] }} hours {{ top_songs[song][0][1] }} minutes</p>
         {% endfor %}
       </div>
     </div>
+
     <div class="Graphs">
-      <header>Daily Summary</header>
-      <img src="{{ url_for('static', filename='day.png') }}">
-      <header>Weekly Summary</header>
-      <img src="{{ url_for('static', filename='week.png') }}">
-      <header>Monthly Summary</header>
-      <img src="{{ url_for('static', filename='month.png') }}">
+      <div class="Graph">
+        <header>Daily Summary</header>
+        <img src="{{ url_for('static', filename='day.png') }}">
+      </div>
+      <div class="Graph">
+        <header>Weekly Summary</header>
+        <img src="{{ url_for('static', filename='week.png') }}">
+      </div>
+      <div class="Graph">
+        <header>Monthly Summary</header>
+        <img src="{{ url_for('static', filename='month.png') }}">
+      </div>
+    </div>
+
+    <div>
+      <header><a href="/month/{{ year }}/{{ month }}/"><u>Check this month's stats</u></a></header>
     </div>
   </body>
 </html>

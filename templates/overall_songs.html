@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <title>overall albums</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </header>
+    <body>
+        <div class="TopTen">
+            <header><b><u>Top Songs</u></b></header>
+            {% for song in top_songs %}
+                <p>{{ loop.index }}. {{ song }} <u>by</u> <a href="/overall/{{ top_songs[song][2] }}">{{ top_songs[song][1] }}</a>: {{ top_songs[song][0][0] }} hours {{ top_songs[song][0][1] }} minutes</p>
+            {% endfor %}
+        </div>
+    </body>
+</html>

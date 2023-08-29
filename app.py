@@ -4,6 +4,7 @@ from datetime import timedelta
 import calendar
 import json
 from os.path import exists
+from os import mkdir
 from glob import glob
 from math import floor
 from configparser import ConfigParser
@@ -12,9 +13,10 @@ import numpy as np
 from typing import Literal, Optional
 
 
-
 app = Flask(__name__, static_url_path='', static_folder='static')
 
+if not exists('./reports/'):
+    mkdir("./reports/")
 
 config = ConfigParser()
 config.read("config.ini")
@@ -269,7 +271,7 @@ def get_top(item_type : Literal['artists', 'albums', 'songs'], top : Optional[in
             for album in data[artist]["albums"]:
                 albums[album] = {
                     "overall" : data[artist]["albums"][album]["overall"],
-                    "artist" : artist.replace("-", " ").title()            
+                    "artist" : artist            
                 }
         data = sorted(albums.items(), key=keyfunc, reverse=True)
         if top:
@@ -279,7 +281,7 @@ def get_top(item_type : Literal['artists', 'albums', 'songs'], top : Optional[in
         for album in data:
             album_title, album_info = album
 
-            sorted_albums[album_title] = (listenTimeFormat(album_info["overall"]), album_info["artist"])
+            sorted_albums[album_title] = (listenTimeFormat(album_info["overall"]), album_info["artist"].replace("-", " ").title(), album_info['artist'])
 
         return sorted_albums
 
@@ -290,7 +292,7 @@ def get_top(item_type : Literal['artists', 'albums', 'songs'], top : Optional[in
                 for song in data[artist]["albums"][album]["songs"]:
                     songs[song] = {
                         "overall" : data[artist]["albums"][album]["songs"][song],
-                        "artist" : artist.replace("-", " ").title()              
+                        "artist" : artist            
                     }
         data = sorted(songs.items(), key=keyfunc, reverse=True)
         if top:
@@ -300,7 +302,7 @@ def get_top(item_type : Literal['artists', 'albums', 'songs'], top : Optional[in
         for song in data:
             song_title, song_info = song
 
-            sorted_songs[song_title] = (listenTimeFormat(song_info["overall"]), song_info["artist"])
+            sorted_songs[song_title] = (listenTimeFormat(song_info["overall"]), song_info["artist"].replace("-", " ").title(), song_info["artist"])
 
         return sorted_songs
 
@@ -310,14 +312,16 @@ def root():
     for period in ['day', 'week', 'month']:
         generate_overall_graph(period)
 
+    today = datetime.today()
+
     top_artists = get_top('artists', top=5)
     top_albums = get_top('albums', top=5)
     top_songs = get_top('songs', top=5)
 
-    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists)
+    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month)
 
-@app.route('/overall/')
-def overall():
+@app.route('/overall/artists/')
+def overall_artists():
 
     with open(spotify_times_path + "overall.json", 'r') as f:
         data = json.loads(f.read())
@@ -335,6 +339,17 @@ def overall():
 
     return render_template('overall.html', data=sorted_artists, total_time=total_time, artist_total=artist_count)
 
+@app.route('/overall/albums/')
+def overall_albums():
+    top_albums = get_top('albums')
+
+    return render_template('overall_albums.html', top_albums=top_albums)
+
+@app.route('/overall/songs/')
+def overall_songs():
+    top_songs = get_top('songs')
+
+    return render_template('overall_songs.html', top_songs=top_songs)
 
 @app.route('/month/<year>/<month>/')
 def overall_month(year : str, month : str):
