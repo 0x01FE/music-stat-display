@@ -9,6 +9,7 @@ from math import floor
 from configparser import ConfigParser
 import matplotlib.pyplot as plt
 import numpy as np
+from typing import Literal, Optional
 
 
 
@@ -167,8 +168,8 @@ def generate_overall_graph(period : str) -> str:
         for i, txt in enumerate(monthly_totals):
             ax.annotate(txt, (dates[i], monthly_totals[i]))
 
-        fig.savefig("templates/month.png")
-        return "templates/month.png"
+        fig.savefig("static/month.png")
+        return "static/month.png"
 
     # Graph of the past eight weeks
     elif period == 'week':
@@ -203,8 +204,8 @@ def generate_overall_graph(period : str) -> str:
         for i, txt in enumerate(weekly_totals):
             ax.annotate(txt, (dates[i], weekly_totals[i]))
 
-        fig.savefig("templates/week.png", bbox_inches='tight')
-        return "templates/week.png"
+        fig.savefig("static/week.png", bbox_inches='tight')
+        return "static/week.png"
 
     # Graph of the past 14 days
     elif period == 'day':
@@ -233,8 +234,8 @@ def generate_overall_graph(period : str) -> str:
         for i, txt in enumerate(daily_totals):
             ax.annotate(txt, (dates[i], daily_totals[i]))
 
-        fig.savefig("templates/day.png", bbox_inches='tight')
-        return "templates/day.png"
+        fig.savefig("static/day.png", bbox_inches='tight')
+        return "static/day.png"
 
 
     else:
@@ -245,10 +246,75 @@ def keyfunc(tup :  tuple) -> int:
     key, d = tup
     return d['overall']
 
+def get_top(item_type : Literal['artists', 'albums', 'songs'], top : Optional[int] = None) -> dict:
+    with open(spotify_times_path + "overall.json", 'r') as f:
+        data = json.loads(f.read())
+
+    if item_type == 'artists':
+        data = sorted(data.items(), key=keyfunc, reverse=True)
+        if top:
+            data = data[:top]
+
+        sorted_artists = {}
+        for artist_tuple in data:
+            artist_name, artist_info = artist_tuple
+
+            sorted_artists[artist_name.replace("-", " ").title()] =  (listenTimeFormat(artist_info["overall"]), artist_name)
+
+        return sorted_artists
+
+    elif item_type == 'albums':
+        albums = {}
+        for artist in data:
+            for album in data[artist]["albums"]:
+                albums[album] = {
+                    "overall" : data[artist]["albums"][album]["overall"],
+                    "artist" : artist.replace("-", " ").title()            
+                }
+        data = sorted(albums.items(), key=keyfunc, reverse=True)
+        if top:
+            data = data[:top]
+        
+        sorted_albums = {}
+        for album in data:
+            album_title, album_info = album
+
+            sorted_albums[album_title] = (listenTimeFormat(album_info["overall"]), album_info["artist"])
+
+        return sorted_albums
+
+    elif item_type == 'songs':
+        songs = {}
+        for artist in data:
+            for album in data[artist]["albums"]:
+                for song in data[artist]["albums"][album]["songs"]:
+                    songs[song] = {
+                        "overall" : data[artist]["albums"][album]["songs"][song],
+                        "artist" : artist.replace("-", " ").title()              
+                    }
+        data = sorted(songs.items(), key=keyfunc, reverse=True)
+        if top:
+            data = data[:top]
+        
+        sorted_songs = {}
+        for song in data:
+            song_title, song_info = song
+
+            sorted_songs[song_title] = (listenTimeFormat(song_info["overall"]), song_info["artist"])
+
+        return sorted_songs
+
 
 @app.route('/')
 def root():
-    return redirect('/overall/')
+    for period in ['day', 'week', 'month']:
+        generate_overall_graph(period)
+
+    top_artists = get_top('artists', top=5)
+    top_albums = get_top('albums', top=5)
+    top_songs = get_top('songs', top=5)
+
+    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists)
 
 @app.route('/overall/')
 def overall():

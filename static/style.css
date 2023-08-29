@@ -38,8 +38,40 @@ header {
     padding-top: 10pt;
 }
 
+.Title {
+    text-align: center;
+    border-style: solid;
+    border-radius: 40px;
+}
 
-#Body div.Header2 {
+#title {
+    font-size: 50px;
+    padding: 20px;
+}
+
+.Graphs {
+    text-align: right;
+    padding: 35px;
+    float: inline-end;
+}
+
+.Graphs header {
+    text-align: center;
+}
+
+.Summary {
+    float: left;
+}
+
+.SummaryBlock {
+    /* border-style: solid;
+    border-radius: 40px; */
+    padding: 15px;
+    /* margin: 15px; */
+}
+
+
+/* #Body div.Header2 {
     padding-top: 10pt;
     font-size: 18pt;
 }
@@ -52,7 +84,7 @@ header {
 
 #body div.TotalTime {
     text-decoration: underline;
-}
+} */
 
 a {
     color: #ed145b;
