@@ -5,9 +5,11 @@
     <title>Overview</title>
   </header>
   <body>
-    <div class="Title">
-      <header id="title">Music Stat Display Home</header>
-    </div>
+    <div class="TitleBlock">Music Stat Display Home</div>
+    <div class="TitleBlock"><a href="/month/{{ year }}/{{ month }}/"><u>Check this month's stats</u></a></div>
+    <div class="TitleBlock">Total Listening Time: {{ total_time[0] }} hours {{ total_time[1] }} minutes</div>
+    <div class="TitleBlock">Total Artists: {{ artist_count }}</div>
+
     <div class="Summary">
       <div class="SummaryBlock">
         <header><a href="/overall/artists/"><u>Top Artists</u></a></header>
@@ -18,13 +20,13 @@
       <div class="SummaryBlock">
         <header><a href="/overall/albums"><u>Top Albums</u></a></header>
         {% for album in top_albums %}
-          <p>{{ loop.index }}. {{ album }} <u>by</u> <a href="/overall/{{ top_albums[album][2] }}">{{ top_albums[album][1] }}</a>: {{ top_albums[album][0][0] }} hours {{ top_albums[album][0][1] }} minutes</p>
+          <p>{{ loop.index }}. {{ album }} <b>by</b> <a href="/overall/{{ top_albums[album][2] }}">{{ top_albums[album][1] }}</a>: {{ top_albums[album][0][0] }} hours {{ top_albums[album][0][1] }} minutes</p>
         {% endfor %}
       </div>
       <div class="SummaryBlock">
         <header><a href="/overall/songs/"><u>Top Songs</u></a></header>
         {% for song in top_songs %}
-          <p>{{ loop.index }}. {{ song }} <u>by</u> <a href="/overall/{{ top_songs[song][2] }}">{{ top_songs[song][1] }}</a>: {{ top_songs[song][0][0] }} hours {{ top_songs[song][0][1] }} minutes</p>
+          <p>{{ loop.index }}. {{ song }} <b>by</b> <a href="/overall/{{ top_songs[song][2] }}">{{ top_songs[song][1] }}</a>: {{ top_songs[song][0][0] }} hours {{ top_songs[song][0][1] }} minutes</p>
         {% endfor %}
       </div>
     </div>
@@ -42,10 +44,6 @@
         <header>Monthly Summary</header>
         <img src="{{ url_for('static', filename='month.png') }}">
       </div>
-    </div>
-
-    <div>
-      <header><a href="/month/{{ year }}/{{ month }}/"><u>Check this month's stats</u></a></header>
     </div>
   </body>
 </html>

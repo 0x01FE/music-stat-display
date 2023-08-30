@@ -38,15 +38,14 @@ header {
     padding-top: 10pt;
 }
 
-.Title {
-    text-align: center;
+.TitleBlock {
+    font-weight: bold;
+    font-size: 24px;
+    padding: 15px;
     border-style: solid;
-    border-radius: 90px;
-}
-
-#title {
-    font-size: 50px;
-    padding: 20px;
+    border-color: white;
+    margin: 5px;
+    display:inline-block;
 }
 
 .Graphs {

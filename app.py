@@ -317,26 +317,24 @@ def root():
     top_albums = get_top('albums', top=5)
     top_songs = get_top('songs', top=5)
 
-    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month)
-
-@app.route('/overall/artists/')
-def overall_artists():
-
     with open(spotify_times_path + "overall.json", 'r') as f:
         data = json.loads(f.read())
 
     total_time = listenTimeFormat(calculate_total_listening_time(data))
     artist_count = len(data)
 
-    data = sorted(data.items(), key=keyfunc, reverse=True)
+    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time)
 
-    sorted_artists = {}
-    for artist_tuple in data:
-        artist_name, artist_info = artist_tuple
+@app.route('/overall/')
+def overall():
+    return redirect('/')
 
-        sorted_artists[artist_name.replace("-", " ").title()] =  (listenTimeFormat(artist_info["overall"]), artist_name)
+@app.route('/overall/artists/')
+def overall_artists():
 
-    return render_template('overall.html', data=sorted_artists, total_time=total_time, artist_total=artist_count)
+    top_artists = get_top('artists')
+
+    return render_template('overall_artists.html', data=top_artists)
 
 @app.route('/overall/albums/')
 def overall_albums():
