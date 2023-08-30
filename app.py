@@ -210,7 +210,7 @@ def generate_overall_graph(period : str) -> str:
 
     # Graph of the past 14 days
     elif period == 'day':
-        today = datetime.today()
+        today = datetime.today() - timedelta(days=3)
 
         daily_totals = []
         dates = []
