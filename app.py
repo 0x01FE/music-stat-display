@@ -9,7 +9,6 @@ from glob import glob
 from math import floor
 from configparser import ConfigParser
 import matplotlib.pyplot as plt
-import numpy as np
 from typing import Literal, Optional
 
 
