@@ -323,7 +323,18 @@ def root():
     total_time = listenTimeFormat(calculate_total_listening_time(data))
     artist_count = len(data)
 
-    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time)
+    # For total albums/songs count
+    all_albums = []
+    all_songs = []
+    for artist in data:
+        for album in data[artist]["albums"]:
+            if album not in all_albums:
+                all_albums.append(album)
+            for song in data[artist]["albums"][album]["songs"]:
+                if song not in all_songs:
+                    all_songs.append(song)
+
+    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=len(all_albums), song_count=len(all_songs))
 
 @app.route('/overall/')
 def overall():
