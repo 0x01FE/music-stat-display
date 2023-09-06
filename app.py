@@ -22,6 +22,7 @@ config.read("config.ini")
 
 spotify_times_path = config['PATHES']['spotify_times']
 templates_path = config['PATHES']['templates']
+DATABASE = config['PATHES']['DATABASE']
 
 def msToHour(mili : int) -> int:
     return round(mili/1000/60/60, 1)
