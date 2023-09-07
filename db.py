@@ -15,6 +15,10 @@ config.read("config.ini")
 
 
 DATABASE = config['PATHES']['DATABASE']
+artist_name = str
+time = int
+
+
 
 class Opener():
     def __init__(self):
@@ -29,7 +33,8 @@ class Opener():
 
 
 
-def get_top_artists(start : Optional[datetime], end : Optional[datetime]) -> list:
+def get_top_artists(start : Optional[datetime] = None, end : Optional[datetime] = None) -> list[tuple[artist_name, time]]:
+    dated = False
     if start and end:
         dated = True
         start = start.strftime("%Y-%m-%d")
@@ -37,9 +42,9 @@ def get_top_artists(start : Optional[datetime], end : Optional[datetime]) -> lis
 
     with Opener() as (con, cur):
         if dated:
-            cur.execute("SELECT artist, SUM(time) FROM dated WHERE DATE(date) BETWEEN ? AND ? GROUP BY artist ORDER BY SUM(time) DESC", [start, end])
+            cur.execute("SELECT artists.name, dated.time FROM dated WHERE DATE(date) BETWEEN ? AND ? INNER JOIN artists ON dated.artist=artists.id GROUP BY dated.artist ORDER BY SUM(time) DESC", [start, end])
         else:
-            cur.execute("SELECT artist, SUM(time) FROM dated GROUP BY artist ORDER BY SUM(time) DESC")
+            cur.execute("SELECT artists.name, dated.time FROM dated INNER JOIN artists ON dated.artist=artists.id GROUP BY dated.artist ORDER BY SUM(time) DESC")
         results = cur.fetchall()
 
     return results
