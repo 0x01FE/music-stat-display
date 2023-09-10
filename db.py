@@ -42,9 +42,9 @@ def get_top_artists(start : Optional[datetime] = None, end : Optional[datetime] 
 
     with Opener() as (con, cur):
         if dated:
-            cur.execute("SELECT artists.name, dated.time FROM dated WHERE DATE(date) BETWEEN ? AND ? INNER JOIN artists ON dated.artist=artists.id GROUP BY dated.artist ORDER BY SUM(time) DESC", [start, end])
+            cur.execute("SELECT artist_name, SUM(total_time) FROM (SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id WHERE DATE(dated.date) BETWEEN '?' AND '?' GROUP BY dated.song, songs.artist) GROUP BY artist_name ORDER BY SUM(total_time) DESC", [start, end])
         else:
-            cur.execute("SELECT artists.name, dated.time FROM dated INNER JOIN artists ON dated.artist=artists.id GROUP BY dated.artist ORDER BY SUM(time) DESC")
+            cur.execute("SELECT artist_name, SUM(total_time) FROM (SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id GROUP BY dated.song, songs.artist) GROUP BY artist_name ORDER BY SUM(total_time) DESC")
         results = cur.fetchall()
 
     return results
