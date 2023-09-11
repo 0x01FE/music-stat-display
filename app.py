@@ -288,15 +288,13 @@ def overall_month(user : int, year : int, month : int):
 
 
 
-@app.route('/month/<year>/<month>/<artist>/')
-def artist_month(year : str, month : str, artist : str):
+@app.route('<int:user>/month/<int:year>/<int:month>/<str:artist>/')
+def artist_month(user : int, year : int, month : int, artist : str):
     artist = artist.lower()
-    month = int(month)
-    year = int(year)
 
-    today = datetime.now()
+    now = datetime.now()
 
-    if month > today.month or month < 1:
+    if month > now.month or month < 1:
         return 'Month is invalid'
 
     last_day = calendar.monthrange(year, month)[1]

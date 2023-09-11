@@ -172,12 +172,12 @@ def get_album_count(user_id : int, start : Optional[datetime] = None, end : Opti
 
     with Opener() as (con, cur):
         if dated:
-            cur.execute("SELECT COUNT(DISTINCT songs.album) album_count FROM dated INNER JOIN songs ON dated.song=songs.id WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ?", [user_id, start, end])
+            cur.execute("SELECT COUNT(DISTINCT dated.song) song_count FROM dated WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ?", [user_id, start, end])
         else:
-            cur.execute("SELECT COUNT(DISTINCT songs.album) album_count FROM dated INNER JOIN songs ON dated.song=songs.id WHERE dated.user = ?", [user_id])
+            cur.execute("SELECT COUNT(DISTINCT dated.song) song_count FROM dated WHERE dated.user = ?", [user_id])
         results = cur.fetchall()
 
-    return results[0][0]
+    return results
 
 
 
@@ -197,6 +197,31 @@ def get_song_count(user_id : int, start : Optional[datetime] = None, end : Optio
         results = cur.fetchall()
 
     return results[0][0]
+
+
+
+def get_artist_top_albums(user_id : int, artist : str, start : Optional[datetime] = None, end : Optional[datetime] = None) -> dict:
+    if start and end:
+        dated = True
+        start = start.strftime("%Y-%m-%d")
+        end = end.strftime("%Y-%m-%d")
+    else:
+        dated = False
+
+    with Opener() as (con, cur):
+        if dated:
+            cur.execute("SELECT artist_name, album_name, SUM(total_time) total_time FROM (SELECT artists.name artist_name, albums.name album_name, songs.name song_name, COUNT(songs.name) * songs.length total_time FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ? AND artists.name = ? GROUP BY songs.name) GROUP BY album_name ORDER BY total_time DESC", [user_id, start, end, artist])
+        else:
+            cur.execute("SELECT artist_name, album_name, SUM(total_time) total_time FROM (SELECT artists.name artist_name, albums.name album_name, songs.name song_name, COUNT(songs.name) * songs.length total_time FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND artists.name = ? GROUP BY songs.name) GROUP BY album_name ORDER BY total_time DESC", [user_id, artist])
+        results = cur.fetchall()
+
+    # Format results
+    top = OrderedDict()
+    for album in results:
+        top[album[1]] = listenTimeFormat(album[2])
+
+    return top
+
 
 
 ### Getters
