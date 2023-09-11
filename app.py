@@ -1,16 +1,18 @@
 from flask import Flask, render_template, redirect
+import matplotlib.pyplot as plt
+
 from datetime import datetime
 from datetime import timedelta
-import calendar
-import json
 from os.path import exists
 from os import mkdir
 from glob import glob
 from math import floor
 from configparser import ConfigParser
-import matplotlib.pyplot as plt
 from typing import Literal, Optional
+import calendar
+import json
 
+import db
 
 app = Flask(__name__, static_url_path='', static_folder='static')
 
@@ -23,6 +25,9 @@ config.read("config.ini")
 spotify_times_path = config['PATHES']['spotify_times']
 templates_path = config['PATHES']['templates']
 DATABASE = config['PATHES']['DATABASE']
+
+
+
 
 def msToHour(mili : int) -> int:
     return round(mili/1000/60/60, 1)
@@ -307,35 +312,27 @@ def get_top(item_type : Literal['artists', 'albums', 'songs'], top : Optional[in
         return sorted_songs
 
 
-@app.route('/')
-def root():
-    for period in ['day', 'week', 'month']:
-        generate_overall_graph(period)
+@app.route('/<int:user>/')
+def user_root(user : int):
+    user_id = int(user)
+
+    # for period in ['day', 'week', 'month']:
+    #     generate_overall_graph(period)
 
     today = datetime.today()
 
-    top_artists = get_top('artists', top=5)
-    top_albums = get_top('albums', top=5)
-    top_songs = get_top('songs', top=5)
+    top_artists = db.get_top_artists(user_id, top=5)
+    top_albums = db.get_top_albums(user_id, top=5)
+    top_songs = db.get_top_songs(user_id, top=5)
 
-    with open(spotify_times_path + "overall.json", 'r') as f:
-        data = json.loads(f.read())
+    total_time = listenTimeFormat(db.get_total_time(user_id))
 
-    total_time = listenTimeFormat(calculate_total_listening_time(data))
-    artist_count = len(data)
+    artist_count = db.get_artist_count(user_id)
+    album_count = db.get_album_count(user_id)
+    song_count = db.get_song_count(user_id)
 
-    # For total albums/songs count
-    all_albums = []
-    all_songs = []
-    for artist in data:
-        for album in data[artist]["albums"]:
-            if album not in all_albums:
-                all_albums.append(album)
-            for song in data[artist]["albums"][album]["songs"]:
-                if song not in all_songs:
-                    all_songs.append(song)
 
-    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=len(all_albums), song_count=len(all_songs))
+    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
 
 @app.route('/overall/')
 def overall():
