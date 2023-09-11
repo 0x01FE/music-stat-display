@@ -15,19 +15,19 @@
 
     <div class="Summary">
       <div class="SummaryBlock">
-        <header><a href="/overall/artists/"><u>Top Artists</u></a></header>
+        <header><a href="./artists/"><u>Top Artists</u></a></header>
         {% for artist in top_artists %}
           <p>{{ loop.index }}. <a href="/overall/{{ top_artists[artist][1] }}">{{ artist }}</a> : {{ top_artists[artist][0][0] }} hours {{ top_artists[artist][0][1] }} minutes</p>
         {% endfor %}
       </div>
       <div class="SummaryBlock">
-        <header><a href="/overall/albums"><u>Top Albums</u></a></header>
+        <header><a href="./albums"><u>Top Albums</u></a></header>
         {% for album in top_albums %}
           <p>{{ loop.index }}. {{ album }} <b>by</b> <a href="/overall/{{ top_albums[album][2] }}">{{ top_albums[album][1] }}</a>: {{ top_albums[album][0][0] }} hours {{ top_albums[album][0][1] }} minutes</p>
         {% endfor %}
       </div>
       <div class="SummaryBlock">
-        <header><a href="/overall/songs/"><u>Top Songs</u></a></header>
+        <header><a href="./songs/"><u>Top Songs</u></a></header>
         {% for song in top_songs %}
           <p>{{ loop.index }}. {{ song }} <b>by</b> <a href="/overall/{{ top_songs[song][2] }}">{{ top_songs[song][1] }}</a>: {{ top_songs[song][0][0] }} hours {{ top_songs[song][0][1] }} minutes</p>
         {% endfor %}
