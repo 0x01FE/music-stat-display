@@ -258,10 +258,8 @@ def overall_songs(user : int):
 
 
 
-@app.route('/month/<year>/<month>/')
-def overall_month(year : str, month : str):
-    month = int(month)
-    year = int(year)
+@app.route('/<int:user>/month/<int:year>/<int:month>/')
+def overall_month(user : int, year : int, month : int):
 
     today = datetime.now()
 
@@ -271,37 +269,22 @@ def overall_month(year : str, month : str):
     last_day = calendar.monthrange(year, month)[1]
 
     if month < 10:
-        start = datetime.strptime(f"01-0{month}-{year}", "%d-%m-%Y")
+        end = datetime.strptime(f"{year}-0{month}-{last_day}", "%Y-%m-%d")
     else:
-        start = datetime.strptime(f"01-{month}-{year}", "%d-%m-%Y")
+        end = datetime.strptime(f"{year}-{month}-{last_day}", "%Y-%m-%d")
 
-    if month == today.month:
-        end = today
-    else:
-        end = datetime.strptime(f"{last_day}-{month}-{year}", "%d-%m-%Y")
+    start = datetime.strptime(f"{year}-{month}", "%Y-%m")
 
-    filename = f'{datetime.strftime(start, "%d-%m-%Y")}-{datetime.strftime(end, "%d-%m-%Y")}.json'
+    top_artists = db.get_top_artists(user, start, end)
+    if not (total_time := db.get_total_time(user, start, end)):
+        return "No data for this month."
+    total_time = listenTimeFormat(total_time)
+    artist_count = db.get_artist_count(user, start, end)
 
-    if not exists("reports/" + filename) or month == today.month:
-        generate_listening_report(start, end)
-
-    with open("reports/" + filename, 'r') as f:
-        data = json.loads(f.read())
-
-    total_time = listenTimeFormat(calculate_total_listening_time(data))
-    artist_count = len(data)
-
-    data = sorted(data.items(), key=keyfunc, reverse=True)
-
-    sorted_artists = {}
-    for artist_tuple in data:
-        artist_name, artist_info = artist_tuple
-
-        sorted_artists[artist_name.replace("-", " ").title()] =  (listenTimeFormat(artist_info["overall"]), artist_name)
 
     links = (f"../../{year}/{month - 1}", f"../../{year}/{month + 1}")
 
-    return render_template('overall_month.html', data=sorted_artists, month_name=calendar.month_name[month], year=year, selector_links=links, month_total=total_time, artist_total=artist_count)
+    return render_template('overall_month.html', data=top_artists, month_name=calendar.month_name[month], year=year, selector_links=links, month_total=total_time, artist_total=artist_count)
 
 
 
