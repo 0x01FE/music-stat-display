@@ -3,15 +3,12 @@ import matplotlib
 import matplotlib.pyplot as plt
 from dateutil.relativedelta import relativedelta
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from os.path import exists
 from os import mkdir
-from glob import glob
 from math import floor
 from configparser import ConfigParser
-from typing import Literal, Optional
 import calendar
-import json
 
 import db
 
