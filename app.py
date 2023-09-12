@@ -1,11 +1,9 @@
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template
 import matplotlib
 import matplotlib.pyplot as plt
 from dateutil.relativedelta import relativedelta
 
 from datetime import datetime
-from os.path import exists
-from os import mkdir
 from math import floor
 from configparser import ConfigParser
 import calendar
@@ -15,13 +13,9 @@ import db
 matplotlib.use("agg")
 app = Flask(__name__, static_url_path='', static_folder='static')
 
-if not exists('./reports/'):
-    mkdir("./reports/")
-
 config = ConfigParser()
 config.read("config.ini")
 
-spotify_times_path = config['PATHES']['spotify_times']
 templates_path = config['PATHES']['templates']
 DATABASE = config['PATHES']['DATABASE']
 
@@ -156,10 +150,6 @@ def generate_overall_graph(user_id : int, period : str) -> str:
     else:
         return 'bad period'
 
-
-def keyfunc(tup :  tuple) -> int:
-    key, d = tup
-    return d['overall']
 
 
 @app.route('/<int:user>/')
