@@ -288,58 +288,27 @@ def overall_month(user : int, year : int, month : int):
 
 
 
-@app.route('<int:user>/month/<int:year>/<int:month>/<str:artist>/')
+@app.route('/<int:user>/month/<int:year>/<int:month>/<artist>/')
 def artist_month(user : int, year : int, month : int, artist : str):
     artist = artist.lower()
 
-    now = datetime.now()
+    today = datetime.now()
 
-    if month > now.month or month < 1:
+    if month > today.month or month < 1:
         return 'Month is invalid'
 
     last_day = calendar.monthrange(year, month)[1]
 
     if month < 10:
-        start = datetime.strptime(f"01-0{month}-{year}", "%d-%m-%Y")
+        end = datetime.strptime(f"{year}-0{month}-{last_day}", "%Y-%m-%d")
     else:
-        start = datetime.strptime(f"01-{month}-{year}", "%d-%m-%Y")
+        end = datetime.strptime(f"{year}-{month}-{last_day}", "%Y-%m-%d")
 
-    if month == today.month:
-        end = today
-    else:
-        end = datetime.strptime(f"{last_day}-{month}-{year}", "%d-%m-%Y")
+    start = datetime.strptime(f"{year}-{month}", "%Y-%m")
 
-    filename = f'{datetime.strftime(start, "%d-%m-%Y")}-{datetime.strftime(end, "%d-%m-%Y")}.json'
-
-    if not exists("reports/" + filename) or month == today.month:
-        generate_listening_report(start, end)
-
-    with open("reports/" + filename, 'r') as f:
-        data = json.loads(f.read())
-
-    total_time = listenTimeFormat(data[artist]["overall"])
-
-    # Sort albums by listen time
-    albums_sorted = sorted(data[artist]["albums"].items(), key=keyfunc, reverse=True)
-
-    top_albums = {}
-    for album_tuple in albums_sorted:
-        album_name, album_info = album_tuple
-
-        top_albums[album_name] = listenTimeFormat(album_info["overall"])
-
-
-    # Make dict of top songs
-    all_songs = {}
-    for album in data[artist]["albums"]:
-        for song in data[artist]["albums"][album]["songs"]:
-            all_songs[song] = data[artist]["albums"][album]["songs"][song]
-
-    sorted_songs = {k: v for k, v in sorted(all_songs.items(), key=lambda item: item[1], reverse=True)}
-
-    top_songs = {}
-    for song in sorted_songs:
-        top_songs[song] = listenTimeFormat(sorted_songs[song])
+    total_time = listenTimeFormat(db.get_artist_total(user, artist, start, end))
+    top_albums = db.get_artist_top_albums(user, artist, start, end)
+    top_songs = db.get_artist_top_songs(user, artist, start, end)
 
     return render_template('artist_month.html', artist_name=artist.replace('-', ' ').title(), month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
