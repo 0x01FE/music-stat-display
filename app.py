@@ -49,53 +49,6 @@ def calculate_total_listening_time(data : dict) -> int:
 
     return overall_time
 
-# returns path to report
-def generate_listening_report(start : datetime, end : datetime) -> str:
-    if end < start:
-        print("Error, start date is after end date.")
-        return
-
-    days = glob(spotify_times_path + "*.json")
-
-    days_in_range = []
-
-    for day in days:
-        if "overall" in day.split("/")[-1] or "last" in day.split("/")[-1]:
-            continue
-
-        file_date = datetime.strptime(day.split("/")[-1][:10], "%d-%m-%Y")
-        if file_date >= start and file_date <= end:
-            days_in_range.append(day)
-
-    report = {}
-    for day in days_in_range:
-        with open(day, "r") as f:
-            day_data = json.loads(f.read())
-
-        for artist in day_data:
-            if artist not in report:
-                report[artist.lower()] = { "overall" : 0, "albums" : {} }
-
-            for album in day_data[artist]["albums"]:
-                if album not in report[artist.lower()]["albums"]:
-                    report[artist.lower()]["albums"][album] = { "overall" : 0, "songs" : {} }
-
-                for song in day_data[artist]["albums"][album]["songs"]:
-                    if song not in report[artist.lower()]["albums"][album]["songs"]:
-                        report[artist.lower()]["albums"][album]["songs"][song] = 0
-
-                    report[artist.lower()]["albums"][album]["songs"][song] += day_data[artist]["albums"][album]["songs"][song]
-                    report[artist.lower()]["overall"] += day_data[artist]["albums"][album]["songs"][song]
-                    report[artist.lower()]["albums"][album]["overall"] += day_data[artist]["albums"][album]["songs"][song]
-
-    if report:
-        save_location = "reports/" + f'{datetime.strftime(start, "%d-%m-%Y")}-{datetime.strftime(end, "%d-%m-%Y")}.json'
-        with open(save_location, "w") as f:
-            f.write(json.dumps(report, indent=4))
-
-        return save_location
-    else:
-        return None
 
 '''
 takes in a period of time to use as the X-axis
