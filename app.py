@@ -315,41 +315,14 @@ def artist_month(user : int, year : int, month : int, artist : str):
 
 
 
-@app.route('/overall/<artist>/')
-def artist(artist : str):
+@app.route('/<int:user>/<artist>/')
+def artist(user: int, artist : str):
     artist = artist.lower()
 
-
-    with open(spotify_times_path + "overall.json", 'r') as f:
-        data = json.loads(f.read())
-
-    total_time = listenTimeFormat(data[artist]["overall"])
-
-    # Sort albums by listen time
-    albums_sorted = sorted(data[artist]["albums"].items(), key=keyfunc, reverse=True)
-
-    top_albums = {}
-    for album_tuple in albums_sorted:
-        album_name, album_info = album_tuple
-
-        top_albums[album_name] = listenTimeFormat(album_info["overall"])
-
-
-    # Make dict of top songs
-    all_songs = {}
-    for album in data[artist]["albums"]:
-        for song in data[artist]["albums"][album]["songs"]:
-            all_songs[song] = data[artist]["albums"][album]["songs"][song]
-
-    sorted_songs = {k: v for k, v in sorted(all_songs.items(), key=lambda item: item[1], reverse=True)}
-
-    top_songs = {}
-    for song in sorted_songs:
-        top_songs[song] = listenTimeFormat(sorted_songs[song])
+    total_time = listenTimeFormat(db.get_artist_total(user, artist))
+    top_albums = db.get_artist_top_albums(user, artist)
+    top_songs = db.get_artist_top_songs(user, artist)
 
     return render_template('artist.html', artist_name=artist.replace('-', ' ').title(), artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
 
-@app.route('/test/')
-def test():
-    return generate_overall_graph("day")
