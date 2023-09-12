@@ -5,14 +5,6 @@ from typing import Optional
 from math import floor
 from collections import OrderedDict
 
-from song import Song
-
-
-
-
-
-
-
 
 config = ConfigParser()
 config.read("config.ini")
@@ -262,74 +254,5 @@ def get_artist_total(user_id : int, artist : str, start : Optional[datetime] = N
         results = cur.fetchall()
 
     return results[0][0]
-
-
-
-### Getters
-
-
-## Artist
-
-# return is (id, name, spotify_id) or None if not found
-def get_artist_by_id(id : int) -> list[int, str, str] | None:
-    with Opener() as (con, cur):
-        cur.execute("SELECT * FROM artists WHERE id = ?", [id])
-
-    results = cur.fetchall()
-    if results:
-        return results[0]
-    return None
-
-def get_artist_by_name(name : str) -> list[int, str, str] | None:
-    with Opener() as (con, cur):
-        cur.execute("SELECT * FROM artists WHERE name = ?", [name])
-
-    results = cur.fetchall()
-    if results:
-        return results[0]
-    return None
-
-
-## Album
-
-def get_album_by_id(id : int) -> list[int, str, str] | None:
-    with Opener() as (con, cur):
-        cur.execute("SELECT * FROM albums WHERE id = ?", [id])
-
-    results = cur.fetchall()
-    if results:
-        return results[0]
-    return None
-
-def get_album_by_name(name : int) -> list[int, str, str] | None:
-    with Opener() as (con, cur):
-        cur.execute("SELECT * FROM albums WHERE name = ?", [name])
-
-    results = cur.fetchall()
-    if results:
-        return results[0]
-    return None
-
-
-## Song
-
-def get_song_by_id(id : int) -> list[int, str, str] | None:
-    with Opener() as (con, cur):
-        cur.execute("SELECT * FROM songs WHERE id = ?", [id])
-
-    results = cur.fetchall()
-    if results:
-        return results[0]
-    return None
-
-def get_song_by_name(name : int) -> list[int, str, str] | None:
-    with Opener() as (con, cur):
-        cur.execute("SELECT * FROM songs WHERE name = ?", [name])
-
-    results = cur.fetchall()
-    if results:
-        return results[0]
-    return None
-
 
 
