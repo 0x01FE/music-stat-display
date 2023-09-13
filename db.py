@@ -169,7 +169,7 @@ def get_album_count(user_id : int, start : Optional[datetime] = None, end : Opti
             cur.execute("SELECT COUNT(DISTINCT dated.song) song_count FROM dated WHERE dated.user = ?", [user_id])
         results = cur.fetchall()
 
-    return results
+    return results[0][0]
 
 
 

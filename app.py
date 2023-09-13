@@ -2,6 +2,8 @@ from flask import Flask, render_template
 import matplotlib
 import matplotlib.pyplot as plt
 from dateutil.relativedelta import relativedelta
+from flask_wtf.csrf import CSRFProtect
+from waitress import serve
 
 from datetime import datetime
 from math import floor
@@ -12,6 +14,9 @@ import db
 
 matplotlib.use("agg")
 app = Flask(__name__, static_url_path='', static_folder='static')
+
+csrf = CSRFProtect()
+csrf.init_app(app)
 
 config = ConfigParser()
 config.read("config.ini")
@@ -80,7 +85,6 @@ def generate_overall_graph(user_id : int, period : str) -> str:
             ax.annotate(txt, (dates[i], totals[i]))
 
         fig.savefig("static/month.png")
-        return "static/month.png"
 
     # Graph of the past eight weeks
     elif period == 'week':
@@ -112,7 +116,6 @@ def generate_overall_graph(user_id : int, period : str) -> str:
             ax.annotate(txt, (dates[i], totals[i]))
 
         fig.savefig("static/week.png", bbox_inches='tight')
-        return "static/week.png"
 
     # Graph of the past 14 days
     elif period == 'day':
@@ -144,11 +147,12 @@ def generate_overall_graph(user_id : int, period : str) -> str:
             ax.annotate(txt, (dates[i], totals[i]))
 
         fig.savefig("static/day.png", bbox_inches='tight')
-        return "static/day.png"
-
 
     else:
         return 'bad period'
+
+    plt.close()
+    return f'static/{period}.png'
 
 
 
@@ -265,4 +269,11 @@ def artist(user: int, artist : str):
 
     return render_template('artist.html', artist_name=artist.replace('-', ' ').title(), artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
+@app.route('/')
+def root():
+    return 'home'
 
+
+
+if __name__ == '__main__':
+    serve(app, host='0.0.0.0', port=802)
