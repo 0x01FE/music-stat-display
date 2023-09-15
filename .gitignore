@@ -6,6 +6,6 @@ reports/*
 .vscode
 jackson/*
 *.png
-*.myl
+*.yml
 *.sh
 
