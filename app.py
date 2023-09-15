@@ -133,7 +133,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
                 break
 
             totals.append(msToHour(time))
-            dates.append(start.strftime("%Y-%m-%d"))
+            dates.append(start.strftime("%m-%d"))
 
         totals = list(reversed(totals))
         dates = list(reversed(dates))
@@ -157,7 +157,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
 
 
 @app.route('/<int:user>/')
-def user_root(user : int):
+def overview(user : int):
 
     for period in ['day', 'week', 'month']:
         generate_overall_graph(user, period)
@@ -176,34 +176,41 @@ def user_root(user : int):
     song_count = db.get_song_count(user)
 
 
-    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
-
-
-
+    return render_template('overall.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
 
 @app.route('/<int:user>/artists/')
-def overall_artists(user: int):
+def artists_overview(user: int):
 
     top_artists = db.get_top_artists(user)
 
-    return render_template('overall_artists.html', data=top_artists)
+    return render_template('artists_overview.html', data=top_artists)
+
+@app.route('/<int:user>/<artist>/')
+def artist_overview(user: int, artist : str):
+    artist = artist.lower()
+
+    total_time = listenTimeFormat(db.get_artist_total(user, artist))
+    top_albums = db.get_artist_top_albums(user, artist)
+    top_songs = db.get_artist_top_songs(user, artist)
+
+    return render_template('artist.html', artist_name=artist.replace('-', ' ').title(), artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
 @app.route('/<int:user>/albums/')
-def overall_albums(user : int):
+def albums_overview(user : int):
     top_albums = db.get_top_albums(user)
 
-    return render_template('overall_albums.html', top_albums=top_albums)
+    return render_template('albums_overview.html', top_albums=top_albums)
 
 @app.route('/<int:user>/songs/')
-def overall_songs(user : int):
+def songs_overview(user : int):
     top_songs = db.get_top_songs(user)
 
-    return render_template('overall_songs.html', top_songs=top_songs)
+    return render_template('songs_overview.html', top_songs=top_songs)
 
 
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/')
-def overall_month(user : int, year : int, month : int):
+def month_overview(user : int, year : int, month : int):
 
     today = datetime.now()
 
@@ -219,21 +226,26 @@ def overall_month(user : int, year : int, month : int):
 
     start = datetime.strptime(f"{year}-{month}", "%Y-%m")
 
-    top_artists = db.get_top_artists(user, start, end)
+    top_artists = db.get_top_artists(user, start=start, end=end, top=5)
+    top_albums = db.get_top_albums(user, start=start, end=end, top=5)
+    top_songs = db.get_top_songs(user, start=start, end=end, top=5)
+
     if not (total_time := db.get_total_time(user, start, end)):
         return "No data for this month."
     total_time = listenTimeFormat(total_time)
-    artist_count = db.get_artist_count(user, start, end)
+
+    artist_count = db.get_artist_count(user, start=start, end=end)
+    album_count = db.get_album_count(user, start=start, end=end)
+    song_count = db.get_song_count(user, start=start, end=end)
 
 
     links = (f"../../{year}/{month - 1}", f"../../{year}/{month + 1}")
 
-    return render_template('overall_month.html', data=top_artists, month_name=calendar.month_name[month], year=year, selector_links=links, month_total=total_time, artist_total=artist_count)
-
+    return render_template('month_overview.html', month_name=calendar.month_name[month], year=year, top_artists=top_artists, top_albums=top_albums, top_songs=top_songs, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
 
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/<artist>/')
-def artist_month(user : int, year : int, month : int, artist : str):
+def artist_month_overview(user : int, year : int, month : int, artist : str):
     artist = artist.lower()
 
     today = datetime.now()
@@ -254,20 +266,8 @@ def artist_month(user : int, year : int, month : int, artist : str):
     top_albums = db.get_artist_top_albums(user, artist, start, end)
     top_songs = db.get_artist_top_songs(user, artist, start, end)
 
-    return render_template('artist_month.html', artist_name=artist.replace('-', ' ').title(), month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
+    return render_template('artist_month_overview.html', artist_name=artist.replace('-', ' ').title(), month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
-
-
-
-@app.route('/<int:user>/<artist>/')
-def artist(user: int, artist : str):
-    artist = artist.lower()
-
-    total_time = listenTimeFormat(db.get_artist_total(user, artist))
-    top_albums = db.get_artist_top_albums(user, artist)
-    top_songs = db.get_artist_top_songs(user, artist)
-
-    return render_template('artist.html', artist_name=artist.replace('-', ' ').title(), artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
 @app.route('/')
 def root():

@@ -99,7 +99,7 @@ def get_top_songs(user_id : int, start : Optional[datetime] = None, end : Option
 
     with Opener() as (con, cur):
         if dated:
-            cur.execute("SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND WHERE DATE(dated.date) BETWEEN ? AND ? GROUP BY dated.song, songs.artist ORDER BY total_time DESC", [user_id, start, end])
+            cur.execute("SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ? GROUP BY dated.song, songs.artist ORDER BY total_time DESC", [user_id, start, end])
         else:
             cur.execute("SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? GROUP BY dated.song, songs.artist ORDER BY total_time DESC", [user_id])
         results = cur.fetchall()
