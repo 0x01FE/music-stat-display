@@ -2,8 +2,9 @@ import sqlite3 as sql
 from datetime import datetime
 from configparser import ConfigParser
 from typing import Optional
-from math import floor
 from collections import OrderedDict
+
+import utils
 
 
 config = ConfigParser()
@@ -25,13 +26,6 @@ class Opener():
         self.con.commit()
         self.con.close()
 
-
-def listenTimeFormat(mili : int) -> tuple:
-
-    minutes = mili/1000/60
-    hours = floor(minutes/60)
-
-    return (hours, round(minutes % 60, 2))
 
 
 
@@ -56,7 +50,7 @@ def get_top_artists(user_id : int, start : Optional[datetime] = None, end : Opti
     # Format results
     top = OrderedDict()
     for artist in results:
-        top[artist[0].replace('-', ' ').title()] = (listenTimeFormat(artist[1]), artist[0])
+        top[artist[0].replace('-', ' ').title()] = (utils.listen_time_format(artist[1]), artist[0])
 
     return top
 
@@ -83,7 +77,7 @@ def get_top_albums(user_id : int, start : Optional[datetime] = None, end : Optio
     # Format results
     top = OrderedDict()
     for album in results:
-        top[album[1]] = (listenTimeFormat(album[2]), album[0].replace('-', ' ').title(), album[0])
+        top[album[1]] = (utils.listen_time_format(album[2]), album[0].replace('-', ' ').title(), album[0])
 
     return top
 
@@ -110,7 +104,7 @@ def get_top_songs(user_id : int, start : Optional[datetime] = None, end : Option
     # Format results
     top = OrderedDict()
     for song in results:
-        top[song[1]] = (listenTimeFormat(song[2]), song[0].replace('-', ' ').title(), song[0])
+        top[song[1]] = (utils.listen_time_format(song[2]), song[0].replace('-', ' ').title(), song[0])
 
     return top
 
@@ -210,7 +204,7 @@ def get_artist_top_albums(user_id : int, artist : str, start : Optional[datetime
     # Format results
     top = OrderedDict()
     for album in results:
-        top[album[1]] = listenTimeFormat(album[2])
+        top[album[1]] = utils.listen_time_format(album[2])
 
     return top
 
@@ -233,7 +227,7 @@ def get_artist_top_songs(user_id : int, artist : str, start : Optional[datetime]
     # Format results
     top = OrderedDict()
     for song in results:
-        top[song[1]] = listenTimeFormat(song[2])
+        top[song[1]] = utils.listen_time_format(song[2])
 
     return top
 

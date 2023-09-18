@@ -6,11 +6,11 @@ from flask_wtf.csrf import CSRFProtect
 from waitress import serve
 
 from datetime import datetime
-from math import floor
 from configparser import ConfigParser
 import calendar
 
 import db
+import utils
 
 matplotlib.use("agg")
 app = Flask(__name__, static_url_path='', static_folder='static')
@@ -30,20 +30,7 @@ DATABASE = config['PATHES']['DATABASE']
 def msToHour(mili : int) -> int:
     return round(mili/1000/60/60, 1)
 
-def listenTimeFormat(mili : int) -> tuple:
 
-    minutes = mili/1000/60
-    hours = floor(minutes/60)
-
-    return (hours, round(minutes % 60, 2))
-
-def calculate_total_listening_time(data : dict) -> int:
-
-    overall_time = 0
-    for artist in data:
-        overall_time += data[artist]["overall"]
-
-    return overall_time
 
 
 '''
@@ -169,7 +156,7 @@ def overview(user : int):
     top_albums = db.get_top_albums(user, top=5)
     top_songs = db.get_top_songs(user, top=5)
 
-    total_time = listenTimeFormat(db.get_total_time(user))
+    total_time = utils.listen_time_format(db.get_total_time(user))
 
     artist_count = db.get_artist_count(user)
     album_count = db.get_album_count(user)
@@ -185,11 +172,11 @@ def artists_overview(user: int):
 
     return render_template('artists_overview.html', data=top_artists)
 
-@app.route('/<int:user>/<artist>/')
+@app.route('/<int:user>/artists/<artist>/')
 def artist_overview(user: int, artist : str):
     artist = artist.lower()
 
-    total_time = listenTimeFormat(db.get_artist_total(user, artist))
+    total_time = utils.listen_time_format(db.get_artist_total(user, artist))
     top_albums = db.get_artist_top_albums(user, artist)
     top_songs = db.get_artist_top_songs(user, artist)
 
@@ -212,31 +199,22 @@ def songs_overview(user : int):
 @app.route('/<int:user>/month/<int:year>/<int:month>/')
 def month_overview(user : int, year : int, month : int):
 
-    today = datetime.now()
+    if not utils.valid_month(year, month):
+        return "Invalid month or year."
 
-    if month > today.month or month < 1:
-        return 'Month is invalid'
+    start, end = utils.calculate_date_range(year, month)
 
-    last_day = calendar.monthrange(year, month)[1]
-
-    if month < 10:
-        end = datetime.strptime(f"{year}-0{month}-{last_day}", "%Y-%m-%d")
-    else:
-        end = datetime.strptime(f"{year}-{month}-{last_day}", "%Y-%m-%d")
-
-    start = datetime.strptime(f"{year}-{month}", "%Y-%m")
-
-    top_artists = db.get_top_artists(user, start=start, end=end, top=5)
-    top_albums = db.get_top_albums(user, start=start, end=end, top=5)
-    top_songs = db.get_top_songs(user, start=start, end=end, top=5)
+    top_artists = db.get_top_artists(user, start, end, top=5)
+    top_albums = db.get_top_albums(user, start, end, top=5)
+    top_songs = db.get_top_songs(user, start, end, top=5)
 
     if not (total_time := db.get_total_time(user, start, end)):
         return "No data for this month."
-    total_time = listenTimeFormat(total_time)
+    total_time = utils.listen_time_format(total_time)
 
-    artist_count = db.get_artist_count(user, start=start, end=end)
-    album_count = db.get_album_count(user, start=start, end=end)
-    song_count = db.get_song_count(user, start=start, end=end)
+    artist_count = db.get_artist_count(user, start, end)
+    album_count = db.get_album_count(user, start, end)
+    song_count = db.get_song_count(user, start, end)
 
 
     links = (f"../../{year}/{month - 1}", f"../../{year}/{month + 1}")
@@ -248,26 +226,28 @@ def month_overview(user : int, year : int, month : int):
 def artist_month_overview(user : int, year : int, month : int, artist : str):
     artist = artist.lower()
 
-    today = datetime.now()
+    if not utils.valid_month(year, month):
+        return "Invalid month or year."
 
-    if month > today.month or month < 1:
-        return 'Month is invalid'
+    start, end = utils.calculate_date_range(year, month)
 
-    last_day = calendar.monthrange(year, month)[1]
-
-    if month < 10:
-        end = datetime.strptime(f"{year}-0{month}-{last_day}", "%Y-%m-%d")
-    else:
-        end = datetime.strptime(f"{year}-{month}-{last_day}", "%Y-%m-%d")
-
-    start = datetime.strptime(f"{year}-{month}", "%Y-%m")
-
-    total_time = listenTimeFormat(db.get_artist_total(user, artist, start, end))
+    total_time = utils.listen_time_format(db.get_artist_total(user, artist, start, end))
     top_albums = db.get_artist_top_albums(user, artist, start, end)
     top_songs = db.get_artist_top_songs(user, artist, start, end)
 
     return render_template('artist_month_overview.html', artist_name=artist.replace('-', ' ').title(), month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
+@app.route('/<int:user>/month/<int:year>/<int:month>/artists/')
+def artists_month_overview(user : int, year : int, month : int):
+
+    if not utils.valid_month(year, month):
+        return "Invalid month or year."
+
+    start, end = utils.calculate_date_range(year, month)
+
+    top_artists = db.get_top_artists(user)
+
+    return render_template('artists_overview.html', data=top_artists)
 
 @app.route('/')
 def root():
