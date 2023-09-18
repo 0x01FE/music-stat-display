@@ -222,7 +222,7 @@ def month_overview(user : int, year : int, month : int):
     return render_template('month_overview.html', month_name=calendar.month_name[month], year=year, top_artists=top_artists, top_albums=top_albums, top_songs=top_songs, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
 
 
-@app.route('/<int:user>/month/<int:year>/<int:month>/<artist>/')
+@app.route('/<int:user>/month/<int:year>/<int:month>/artists/<artist>/')
 def artist_month_overview(user : int, year : int, month : int, artist : str):
     artist = artist.lower()
 
@@ -245,9 +245,35 @@ def artists_month_overview(user : int, year : int, month : int):
 
     start, end = utils.calculate_date_range(year, month)
 
-    top_artists = db.get_top_artists(user)
+    top_artists = db.get_top_artists(user, start, end)
 
-    return render_template('artists_overview.html', data=top_artists)
+    return render_template('artists_month_overview.html', top_artists=top_artists, month_name=calendar.month_name[month], year=year)
+
+@app.route('/<int:user>/month/<int:year>/<int:month>/albums/')
+def albums_month_overview(user : int, year : int, month : int):
+
+    if not utils.valid_month(year, month):
+        return "Invalid month or year."
+
+    start, end = utils.calculate_date_range(year, month)
+
+    top_albums = db.get_top_albums(user, start, end)
+
+    return render_template('albums_month_overview.html', top_albums=top_albums, month_name=calendar.month_name[month], year=year)
+
+@app.route('/<int:user>/month/<int:year>/<int:month>/songs/')
+def songs_month_overview(user : int, year : int, month : int):
+
+    if not utils.valid_month(year, month):
+        return "Invalid month or year."
+
+    start, end = utils.calculate_date_range(year, month)
+
+    top_songs = db.get_top_songs(user, start, end)
+
+    return render_template('songs_month_overview.html', top_songs=top_songs, month_name=calendar.month_name[month], year=year)
+
+
 
 @app.route('/')
 def root():
