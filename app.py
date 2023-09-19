@@ -63,13 +63,20 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         totals = list(reversed(totals))
         dates = list(reversed(dates))
 
-        fig, ax = plt.subplots()
-        ax.plot(dates, totals)
-        ax.set(xlabel='Date', ylabel='time (hours)', title='Listening Time')
+        fig, ax = plt.subplots(facecolor="xkcd:black")
+        ax.set_facecolor("xkcd:midnight purple")
+        for spine in ax.spines.values():
+            spine.set_color('xkcd:pink')
+        ax.plot(dates, totals, color="xkcd:hot pink")
+        ax.set_xlabel('Date', color="xkcd:hot pink")
+        ax.tick_params(axis="x", colors="xkcd:dark blue")
+        ax.set_ylabel("Time (Hours)", color="xkcd:hot pink")
+        ax.tick_params(axis="y", colors="xkcd:bright lime green")
+        ax.set_title("Listening Time", color="xkcd:hot pink")
         ax.grid()
 
         for i, txt in enumerate(totals):
-            ax.annotate(txt, (dates[i], totals[i]))
+            ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
 
         fig.savefig("static/month.png")
 
