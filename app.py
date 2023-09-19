@@ -12,7 +12,10 @@ import calendar
 import db
 import utils
 
+
 matplotlib.use("agg")
+matplotlib.font_manager.fontManager.addfont("./static/CyberpunkWaifus.ttf")
+
 app = Flask(__name__, static_url_path='', static_folder='static')
 
 csrf = CSRFProtect()
@@ -32,6 +35,33 @@ def msToHour(mili : int) -> int:
 
 
 
+def color_graph(ax : matplotlib.axes.Axes, plot : matplotlib.lines.Line2D) -> matplotlib.axes.Axes:
+    # Graph Background
+    ax.set_facecolor("#00031c")
+
+    # Graph Border
+    for spine in ax.spines.values():
+        spine.set_color('xkcd:pink')
+
+    # Data Line Color
+    for line in plot:
+        line.set_color("xkcd:hot pink")
+
+    # Axis Label Colors
+    ax.set_xlabel('Date', color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=15)
+    ax.set_ylabel("Time (Hours)", color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=15)
+
+    # Tick colors
+    ax.tick_params(axis="x", colors="xkcd:powder blue")
+    ax.tick_params(axis="y", colors="xkcd:powder blue")
+
+    # Title Color
+    ax.set_title("Listening Time", color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=15)
+
+    # Grid
+    ax.grid(color="xkcd:dark purple")
+
+    return ax
 
 '''
 takes in a period of time to use as the X-axis
@@ -64,16 +94,9 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         dates = list(reversed(dates))
 
         fig, ax = plt.subplots(facecolor="xkcd:black")
-        ax.set_facecolor("xkcd:midnight purple")
-        for spine in ax.spines.values():
-            spine.set_color('xkcd:pink')
-        ax.plot(dates, totals, color="xkcd:hot pink")
-        ax.set_xlabel('Date', color="xkcd:hot pink")
-        ax.tick_params(axis="x", colors="xkcd:dark blue")
-        ax.set_ylabel("Time (Hours)", color="xkcd:hot pink")
-        ax.tick_params(axis="y", colors="xkcd:bright lime green")
-        ax.set_title("Listening Time", color="xkcd:hot pink")
-        ax.grid()
+        line = ax.plot(dates, totals)
+
+        color_graph(ax, line)
 
         for i, txt in enumerate(totals):
             ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
@@ -132,13 +155,13 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         totals = list(reversed(totals))
         dates = list(reversed(dates))
 
-        fig, ax = plt.subplots()
-        ax.plot(dates, totals)
-        ax.set(xlabel='Date', ylabel='time (hours)')
-        ax.grid()
+        fig, ax = plt.subplots(facecolor="xkcd:black")
+        line = ax.plot(dates, totals)
+
+        color_graph(ax, line)
 
         for i, txt in enumerate(totals):
-            ax.annotate(txt, (dates[i], totals[i]))
+            ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
 
         fig.savefig("static/day.png", bbox_inches='tight')
 
