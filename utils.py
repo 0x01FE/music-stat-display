@@ -1,7 +1,5 @@
 import datetime
 import calendar
-import math
-
 
 def calculate_date_range(year : int, month : int) -> tuple[datetime.datetime, datetime.datetime]:
     last_day = calendar.monthrange(year, month)[1]
@@ -24,12 +22,4 @@ def valid_month(year : int, month : int) -> bool:
         return False
     else:
         return True
-
-
-def listen_time_format(mili : int) -> tuple[int, int]:
-
-    minutes = mili/1000/60
-    hours = math.floor(minutes/60)
-
-    return (hours, round(minutes % 60, 2))
 

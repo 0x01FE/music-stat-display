@@ -5,6 +5,7 @@ from typing import Optional
 from collections import OrderedDict
 
 import utils
+import listen_time
 
 
 config = ConfigParser()
@@ -50,7 +51,7 @@ def get_top_artists(user_id : int, start : Optional[datetime] = None, end : Opti
     # Format results
     top = OrderedDict()
     for artist in results:
-        top[artist[0].replace('-', ' ').title()] = (utils.listen_time_format(artist[1]), artist[0])
+        top[artist[0].replace('-', ' ').title()] = (listen_time.ListenTime(artist[1]).to_hour_and_seconds(), artist[0])
 
     return top
 
@@ -77,7 +78,7 @@ def get_top_albums(user_id : int, start : Optional[datetime] = None, end : Optio
     # Format results
     top = OrderedDict()
     for album in results:
-        top[album[1]] = (utils.listen_time_format(album[2]), album[0].replace('-', ' ').title(), album[0])
+        top[album[1]] = (listen_time.ListenTime(album[2]).to_hour_and_seconds(), album[0].replace('-', ' ').title(), album[0])
 
     return top
 
@@ -104,13 +105,13 @@ def get_top_songs(user_id : int, start : Optional[datetime] = None, end : Option
     # Format results
     top = OrderedDict()
     for song in results:
-        top[song[1]] = (utils.listen_time_format(song[2]), song[0].replace('-', ' ').title(), song[0])
+        top[song[1]] = (listen_time.ListenTime(song[2]).to_hour_and_seconds(), song[0].replace('-', ' ').title(), song[0])
 
     return top
 
 
 
-def get_total_time(user_id : int, start : Optional[datetime] = None, end : Optional[datetime] = None) -> int:
+def get_total_time(user_id : int, start : Optional[datetime] = None, end : Optional[datetime] = None) -> listen_time.ListenTime | None:
     if start and end:
         dated = True
         start = start.strftime("%Y-%m-%d")
@@ -125,7 +126,10 @@ def get_total_time(user_id : int, start : Optional[datetime] = None, end : Optio
             cur.execute("SELECT SUM(total_time) total_time FROM (SELECT artists.name artist_name, songs.name song_name, dated.song song_id, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? GROUP BY dated.song, songs.artist)", [user_id])
         results = cur.fetchall()
 
-    return results[0][0]
+    if results[0][0]:
+        return listen_time.ListenTime(results[0][0])
+    else:
+        return None
 
 
 
@@ -204,7 +208,7 @@ def get_artist_top_albums(user_id : int, artist : str, start : Optional[datetime
     # Format results
     top = OrderedDict()
     for album in results:
-        top[album[1]] = utils.listen_time_format(album[2])
+        top[album[1]] = listen_time.ListenTime(album[2]).to_hour_and_seconds()
 
     return top
 
@@ -227,12 +231,12 @@ def get_artist_top_songs(user_id : int, artist : str, start : Optional[datetime]
     # Format results
     top = OrderedDict()
     for song in results:
-        top[song[1]] = utils.listen_time_format(song[2])
+        top[song[1]] = listen_time.ListenTime(song[2]).to_hour_and_seconds()
 
     return top
 
 
-def get_artist_total(user_id : int, artist : str, start : Optional[datetime] = None, end : Optional[datetime] = None) -> int:
+def get_artist_total(user_id : int, artist : str, start : Optional[datetime] = None, end : Optional[datetime] = None) -> listen_time.ListenTime | None:
     if start and end:
         dated = True
         start = start.strftime("%Y-%m-%d")
@@ -247,6 +251,9 @@ def get_artist_total(user_id : int, artist : str, start : Optional[datetime] = N
             cur.execute("SELECT SUM(total_time) total_time FROM (SELECT artists.name artist_name, songs.name song_name, dated.song song_id, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id WHERE dated.user = ? AND artists.name = ? GROUP BY dated.song, songs.artist)", [user_id, artist])
         results = cur.fetchall()
 
-    return results[0][0]
+    if results[0][0]:
+        return listen_time.ListenTime(results[0][0])
+    else:
+        return None
 
 

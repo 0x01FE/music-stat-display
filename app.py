@@ -30,12 +30,8 @@ DATABASE = config['PATHES']['DATABASE']
 
 
 
-def msToHour(mili : int) -> int:
-    return round(mili/1000/60/60, 1)
 
-
-
-def color_graph(ax : matplotlib.axes.Axes, plot : matplotlib.lines.Line2D) -> matplotlib.axes.Axes:
+def color_graph(title : str, ax : matplotlib.axes.Axes, plot : matplotlib.lines.Line2D) -> matplotlib.axes.Axes:
     # Graph Background
     ax.set_facecolor("#00031c")
 
@@ -56,7 +52,7 @@ def color_graph(ax : matplotlib.axes.Axes, plot : matplotlib.lines.Line2D) -> ma
     ax.tick_params(axis="y", colors="xkcd:powder blue")
 
     # Title Color
-    ax.set_title("Listening Time", color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=15)
+    ax.set_title(title, color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=20)
 
     # Grid
     ax.grid(color="xkcd:dark purple")
@@ -87,7 +83,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
             if not time:
                 break
 
-            totals.append(msToHour(time))
+            totals.append(time.to_hours())
             dates.append(start.strftime("%Y-%m-%d"))
 
         totals = list(reversed(totals))
@@ -96,7 +92,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         fig, ax = plt.subplots(facecolor="xkcd:black")
         line = ax.plot(dates, totals)
 
-        color_graph(ax, line)
+        color_graph("Monthly Summary", ax, line)
 
         for i, txt in enumerate(totals):
             ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
@@ -118,19 +114,19 @@ def generate_overall_graph(user_id : int, period : str) -> str:
             if not time:
                 break
 
-            totals.append(msToHour(time))
+            totals.append(time.to_hours())
             dates.append(start.strftime("%Y-%m-%d"))
 
         totals = list(reversed(totals))
         dates = list(reversed(dates))
 
-        fig, ax = plt.subplots()
-        ax.plot(dates, totals)
-        ax.set(xlabel='Date', ylabel='time (hours)', title='Listening Time')
-        ax.grid()
+        fig, ax = plt.subplots(facecolor="xkcd:black")
+        line = ax.plot(dates, totals)
+
+        color_graph("Weekly Summary", ax, line)
 
         for i, txt in enumerate(totals):
-            ax.annotate(txt, (dates[i], totals[i]))
+            ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
 
         fig.savefig("static/week.png", bbox_inches='tight')
 
@@ -149,7 +145,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
             if not time:
                 break
 
-            totals.append(msToHour(time))
+            totals.append(time.to_hours())
             dates.append(start.strftime("%m-%d"))
 
         totals = list(reversed(totals))
@@ -158,7 +154,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         fig, ax = plt.subplots(facecolor="xkcd:black")
         line = ax.plot(dates, totals)
 
-        color_graph(ax, line)
+        color_graph("Daily Summary", ax, line)
 
         for i, txt in enumerate(totals):
             ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
@@ -186,7 +182,7 @@ def overview(user : int):
     top_albums = db.get_top_albums(user, top=5)
     top_songs = db.get_top_songs(user, top=5)
 
-    total_time = utils.listen_time_format(db.get_total_time(user))
+    total_time = db.get_total_time(user).to_hour_and_seconds()
 
     artist_count = db.get_artist_count(user)
     album_count = db.get_album_count(user)
@@ -206,7 +202,7 @@ def artists_overview(user: int):
 def artist_overview(user: int, artist : str):
     artist = artist.lower()
 
-    total_time = utils.listen_time_format(db.get_artist_total(user, artist))
+    total_time = db.get_artist_total(user, artist).to_hour_and_seconds()
     top_albums = db.get_artist_top_albums(user, artist)
     top_songs = db.get_artist_top_songs(user, artist)
 
@@ -240,7 +236,7 @@ def month_overview(user : int, year : int, month : int):
 
     if not (total_time := db.get_total_time(user, start, end)):
         return "No data for this month."
-    total_time = utils.listen_time_format(total_time)
+    total_time = total_time.to_hour_and_seconds()
 
     artist_count = db.get_artist_count(user, start, end)
     album_count = db.get_album_count(user, start, end)
@@ -261,7 +257,7 @@ def artist_month_overview(user : int, year : int, month : int, artist : str):
 
     start, end = utils.calculate_date_range(year, month)
 
-    total_time = utils.listen_time_format(db.get_artist_total(user, artist, start, end))
+    total_time = db.get_artist_total(user, artist, start, end).to_hour_and_seconds()
     top_albums = db.get_artist_top_albums(user, artist, start, end)
     top_songs = db.get_artist_top_songs(user, artist, start, end)
 
