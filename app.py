@@ -10,7 +10,7 @@ from configparser import ConfigParser
 import calendar
 
 import db
-import utils
+import date_range
 
 
 matplotlib.use("agg")
@@ -78,7 +78,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         for i in range(1, 13):
             start = now - relativedelta(months=i) # Why does normal timedelta not support months?
             end = now - relativedelta(months=i-1)
-            time = db.get_total_time(user_id, start, end)
+            time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
             if not time:
                 break
@@ -109,7 +109,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         for i in range(1, 9):
             start = now - relativedelta(weeks=i) # Why does normal timedelta not support months?
             end = now - relativedelta(weeks=i-1)
-            time = db.get_total_time(user_id, start, end)
+            time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
             if not time:
                 break
@@ -132,7 +132,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
 
     # Graph of the past 14 days
     elif period == 'day':
-        now = datetime.now()
+        now = datetime.strptime("2023-09-16", "%Y-%m-%d")
 
         totals = []
         dates = []
@@ -140,10 +140,10 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         for i in range(1, 9):
             start = now - relativedelta(days=i) # Why does normal timedelta not support months?
             end = now - relativedelta(days=i-1)
-            time = db.get_total_time(user_id, start, end)
+            time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
             if not time:
-                break
+                time = 0
 
             totals.append(time.to_hours())
             dates.append(start.strftime("%m-%d"))
@@ -225,22 +225,22 @@ def songs_overview(user : int):
 @app.route('/<int:user>/month/<int:year>/<int:month>/')
 def month_overview(user : int, year : int, month : int):
 
-    if not utils.valid_month(year, month):
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
         return "Invalid month or year."
 
-    start, end = utils.calculate_date_range(year, month)
+    top_artists = db.get_top_artists(user, period, top=5)
+    top_albums = db.get_top_albums(user, period, top=5)
+    top_songs = db.get_top_songs(user, period, top=5)
 
-    top_artists = db.get_top_artists(user, start, end, top=5)
-    top_albums = db.get_top_albums(user, start, end, top=5)
-    top_songs = db.get_top_songs(user, start, end, top=5)
-
-    if not (total_time := db.get_total_time(user, start, end)):
+    if not (total_time := db.get_total_time(user, period)):
         return "No data for this month."
     total_time = total_time.to_hour_and_seconds()
 
-    artist_count = db.get_artist_count(user, start, end)
-    album_count = db.get_album_count(user, start, end)
-    song_count = db.get_song_count(user, start, end)
+    artist_count = db.get_artist_count(user, period)
+    album_count = db.get_album_count(user, period)
+    song_count = db.get_song_count(user, period)
 
 
     links = (f"../../{year}/{month - 1}", f"../../{year}/{month + 1}")
@@ -252,50 +252,50 @@ def month_overview(user : int, year : int, month : int):
 def artist_month_overview(user : int, year : int, month : int, artist : str):
     artist = artist.lower()
 
-    if not utils.valid_month(year, month):
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
         return "Invalid month or year."
 
-    start, end = utils.calculate_date_range(year, month)
-
-    total_time = db.get_artist_total(user, artist, start, end).to_hour_and_seconds()
-    top_albums = db.get_artist_top_albums(user, artist, start, end)
-    top_songs = db.get_artist_top_songs(user, artist, start, end)
+    total_time = db.get_artist_total(user, artist, period).to_hour_and_seconds()
+    top_albums = db.get_artist_top_albums(user, artist, period)
+    top_songs = db.get_artist_top_songs(user, artist, period)
 
     return render_template('artist_month_overview.html', artist_name=artist.replace('-', ' ').title(), month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/artists/')
 def artists_month_overview(user : int, year : int, month : int):
 
-    if not utils.valid_month(year, month):
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
         return "Invalid month or year."
 
-    start, end = utils.calculate_date_range(year, month)
-
-    top_artists = db.get_top_artists(user, start, end)
+    top_artists = db.get_top_artists(user, period)
 
     return render_template('artists_month_overview.html', top_artists=top_artists, month_name=calendar.month_name[month], year=year)
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/albums/')
 def albums_month_overview(user : int, year : int, month : int):
 
-    if not utils.valid_month(year, month):
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
         return "Invalid month or year."
 
-    start, end = utils.calculate_date_range(year, month)
-
-    top_albums = db.get_top_albums(user, start, end)
+    top_albums = db.get_top_albums(user, period)
 
     return render_template('albums_month_overview.html', top_albums=top_albums, month_name=calendar.month_name[month], year=year)
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/songs/')
 def songs_month_overview(user : int, year : int, month : int):
 
-    if not utils.valid_month(year, month):
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
         return "Invalid month or year."
 
-    start, end = utils.calculate_date_range(year, month)
-
-    top_songs = db.get_top_songs(user, start, end)
+    top_songs = db.get_top_songs(user, period)
 
     return render_template('songs_month_overview.html', top_songs=top_songs, month_name=calendar.month_name[month], year=year)
 

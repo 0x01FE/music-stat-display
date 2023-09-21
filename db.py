@@ -1,12 +1,11 @@
 import sqlite3 as sql
-from datetime import datetime
 from configparser import ConfigParser
 from typing import Optional
 from collections import OrderedDict
 
-import utils
-import listen_time
 
+import listen_time
+import date_range
 
 config = ConfigParser()
 config.read("config.ini")
@@ -30,13 +29,12 @@ class Opener():
 
 
 
-def get_top_artists(user_id : int, start : Optional[datetime] = None, end : Optional[datetime] = None, top : Optional[int] = None) -> dict:
-    if start and end:
+def get_top_artists(user_id : int, range : date_range.DateRange | None = None, top : Optional[int] = None) -> dict:
+    dated = False
+    if range:
         dated = True
-        start = start.strftime("%Y-%m-%d")
-        end = end.strftime("%Y-%m-%d")
-    else:
-        dated = False
+        start, end = range.to_str()
+
 
     with Opener() as (con, cur):
         if dated:
@@ -57,13 +55,11 @@ def get_top_artists(user_id : int, start : Optional[datetime] = None, end : Opti
 
 
 
-def get_top_albums(user_id : int, start : Optional[datetime] = None, end : Optional[datetime] = None, top : Optional[int] = None) -> dict:
-    if start and end:
+def get_top_albums(user_id : int, range : date_range.DateRange | None = None, top : Optional[int] = None) -> dict:
+    dated = False
+    if range:
         dated = True
-        start = start.strftime("%Y-%m-%d")
-        end = end.strftime("%Y-%m-%d")
-    else:
-        dated = False
+        start, end = range.to_str()
 
     with Opener() as (con, cur):
         if dated:
@@ -84,13 +80,11 @@ def get_top_albums(user_id : int, start : Optional[datetime] = None, end : Optio
 
 
 
-def get_top_songs(user_id : int, start : Optional[datetime] = None, end : Optional[datetime] = None, top : Optional[int] = None) -> dict:
-    if start and end:
+def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top : Optional[int] = None) -> dict:
+    dated = False
+    if range:
         dated = True
-        start = start.strftime("%Y-%m-%d")
-        end = end.strftime("%Y-%m-%d")
-    else:
-        dated = False
+        start, end = range.to_str()
 
     with Opener() as (con, cur):
         if dated:
@@ -111,13 +105,11 @@ def get_top_songs(user_id : int, start : Optional[datetime] = None, end : Option
 
 
 
-def get_total_time(user_id : int, start : Optional[datetime] = None, end : Optional[datetime] = None) -> listen_time.ListenTime | None:
-    if start and end:
+def get_total_time(user_id : int, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
+    dated = False
+    if range:
         dated = True
-        start = start.strftime("%Y-%m-%d")
-        end = end.strftime("%Y-%m-%d")
-    else:
-        dated = False
+        start, end = range.to_str()
 
     with Opener() as (con, cur):
         if dated:
@@ -133,13 +125,11 @@ def get_total_time(user_id : int, start : Optional[datetime] = None, end : Optio
 
 
 
-def get_artist_count(user_id : int, start : Optional[datetime] = None, end : Optional[datetime] = None) -> int:
-    if start and end:
+def get_artist_count(user_id : int, range : date_range.DateRange | None = None) -> int:
+    dated = False
+    if range:
         dated = True
-        start = start.strftime("%Y-%m-%d")
-        end = end.strftime("%Y-%m-%d")
-    else:
-        dated = False
+        start, end = range.to_str()
 
     with Opener() as (con, cur):
         if dated:
@@ -152,13 +142,11 @@ def get_artist_count(user_id : int, start : Optional[datetime] = None, end : Opt
 
 
 
-def get_album_count(user_id : int, start : Optional[datetime] = None, end : Optional[datetime] = None) -> int:
-    if start and end:
+def get_album_count(user_id : int, range : date_range.DateRange | None = None) -> int:
+    dated = False
+    if range:
         dated = True
-        start = start.strftime("%Y-%m-%d")
-        end = end.strftime("%Y-%m-%d")
-    else:
-        dated = False
+        start, end = range.to_str()
 
     with Opener() as (con, cur):
         if dated:
@@ -171,13 +159,11 @@ def get_album_count(user_id : int, start : Optional[datetime] = None, end : Opti
 
 
 
-def get_song_count(user_id : int, start : Optional[datetime] = None, end : Optional[datetime] = None) -> int:
-    if start and end:
+def get_song_count(user_id : int, range : date_range.DateRange | None = None) -> int:
+    dated = False
+    if range:
         dated = True
-        start = start.strftime("%Y-%m-%d")
-        end = end.strftime("%Y-%m-%d")
-    else:
-        dated = False
+        start, end = range.to_str()
 
     with Opener() as (con, cur):
         if dated:
@@ -190,13 +176,11 @@ def get_song_count(user_id : int, start : Optional[datetime] = None, end : Optio
 
 
 
-def get_artist_top_albums(user_id : int, artist : str, start : Optional[datetime] = None, end : Optional[datetime] = None) -> dict:
-    if start and end:
+def get_artist_top_albums(user_id : int, artist : str, range : date_range.DateRange | None = None) -> dict:
+    dated = False
+    if range:
         dated = True
-        start = start.strftime("%Y-%m-%d")
-        end = end.strftime("%Y-%m-%d")
-    else:
-        dated = False
+        start, end = range.to_str()
 
     with Opener() as (con, cur):
         if dated:
@@ -213,13 +197,11 @@ def get_artist_top_albums(user_id : int, artist : str, start : Optional[datetime
     return top
 
 
-def get_artist_top_songs(user_id : int, artist : str, start : Optional[datetime] = None, end : Optional[datetime] = None) -> dict:
-    if start and end:
+def get_artist_top_songs(user_id : int, artist : str, range : date_range.DateRange | None = None) -> dict:
+    dated = False
+    if range:
         dated = True
-        start = start.strftime("%Y-%m-%d")
-        end = end.strftime("%Y-%m-%d")
-    else:
-        dated = False
+        start, end = range.to_str()
 
     with Opener() as (con, cur):
         if dated:
@@ -236,13 +218,11 @@ def get_artist_top_songs(user_id : int, artist : str, start : Optional[datetime]
     return top
 
 
-def get_artist_total(user_id : int, artist : str, start : Optional[datetime] = None, end : Optional[datetime] = None) -> listen_time.ListenTime | None:
-    if start and end:
+def get_artist_total(user_id : int, artist : str, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
+    dated = False
+    if range:
         dated = True
-        start = start.strftime("%Y-%m-%d")
-        end = end.strftime("%Y-%m-%d")
-    else:
-        dated = False
+        start, end = range.to_str()
 
     with Opener() as (con, cur):
         if dated:
