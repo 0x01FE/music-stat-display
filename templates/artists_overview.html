@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
         <title>overall</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </header>
@@ -9,7 +10,7 @@
         <div class="TopTen">
             <header><b><u>Top Artists</u></b></header>
             {% for artist in data %}
-              <p>{{ loop.index }}. <a href="/overall/{{ data[artist][1] }}">{{ artist }}</a> : {{ data[artist][0][0] }} hours {{ data[artist][0][1] }} minutes</p>
+              <p>{{ loop.index }}. <a href="./{{ data[artist][1] }}">{{ artist }}</a> : {{ data[artist][0][0] }} hours {{ data[artist][0][1] }} minutes</p>
             {% endfor %}
         </div>
     </body>

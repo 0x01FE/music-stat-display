@@ -1,93 +1,63 @@
-from flask import Flask, render_template, redirect
-from datetime import datetime
-from datetime import timedelta
-import calendar
-import json
-from os.path import exists
-from os import mkdir
-from glob import glob
-from math import floor
-from configparser import ConfigParser
+from flask import Flask, render_template
+import matplotlib
 import matplotlib.pyplot as plt
-from typing import Literal, Optional
+from dateutil.relativedelta import relativedelta
+from flask_wtf.csrf import CSRFProtect
+from waitress import serve
 
+from datetime import datetime
+from configparser import ConfigParser
+import calendar
+
+import db
+import date_range
+
+
+matplotlib.use("agg")
+matplotlib.font_manager.fontManager.addfont("./static/CyberpunkWaifus.ttf")
 
 app = Flask(__name__, static_url_path='', static_folder='static')
 
-if not exists('./reports/'):
-    mkdir("./reports/")
+csrf = CSRFProtect()
+csrf.init_app(app)
 
 config = ConfigParser()
 config.read("config.ini")
 
-spotify_times_path = config['PATHES']['spotify_times']
 templates_path = config['PATHES']['templates']
+DATABASE = config['PATHES']['DATABASE']
 
-def msToHour(mili : int) -> int:
-    return round(mili/1000/60/60, 1)
 
-def listenTimeFormat(mili : int) -> tuple:
 
-    minutes = mili/1000/60
-    hours = floor(minutes/60)
 
-    return (hours, round(minutes % 60, 2))
 
-def calculate_total_listening_time(data : dict) -> int:
+def color_graph(title : str, ax : matplotlib.axes.Axes, plot : matplotlib.lines.Line2D) -> matplotlib.axes.Axes:
+    # Graph Background
+    ax.set_facecolor("#00031c")
 
-    overall_time = 0
-    for artist in data:
-        overall_time += data[artist]["overall"]
+    # Graph Border
+    for spine in ax.spines.values():
+        spine.set_color('xkcd:pink')
 
-    return overall_time
+    # Data Line Color
+    for line in plot:
+        line.set_color("xkcd:hot pink")
 
-# returns path to report
-def generate_listening_report(start : datetime, end : datetime) -> str:
-    if end < start:
-        print("Error, start date is after end date.")
-        return
+    # Axis Label Colors
+    ax.set_xlabel('Date', color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=15)
+    ax.set_ylabel("Time (Hours)", color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=15)
 
-    days = glob(spotify_times_path + "*.json")
+    # Tick colors
+    ax.tick_params(axis="x", colors="xkcd:powder blue")
+    ax.tick_params(axis="y", colors="xkcd:powder blue")
 
-    days_in_range = []
+    # Title Color
+    ax.set_title(title, color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=20)
 
-    for day in days:
-        if "overall" in day.split("/")[-1] or "last" in day.split("/")[-1]:
-            continue
+    # Grid
+    ax.grid(color="xkcd:dark purple")
 
-        file_date = datetime.strptime(day.split("/")[-1][:10], "%d-%m-%Y")
-        if file_date >= start and file_date <= end:
-            days_in_range.append(day)
-
-    report = {}
-    for day in days_in_range:
-        with open(day, "r") as f:
-            day_data = json.loads(f.read())
-
-        for artist in day_data:
-            if artist not in report:
-                report[artist.lower()] = { "overall" : 0, "albums" : {} }
-
-            for album in day_data[artist]["albums"]:
-                if album not in report[artist.lower()]["albums"]:
-                    report[artist.lower()]["albums"][album] = { "overall" : 0, "songs" : {} }
-
-                for song in day_data[artist]["albums"][album]["songs"]:
-                    if song not in report[artist.lower()]["albums"][album]["songs"]:
-                        report[artist.lower()]["albums"][album]["songs"][song] = 0
-
-                    report[artist.lower()]["albums"][album]["songs"][song] += day_data[artist]["albums"][album]["songs"][song]
-                    report[artist.lower()]["overall"] += day_data[artist]["albums"][album]["songs"][song]
-                    report[artist.lower()]["albums"][album]["overall"] += day_data[artist]["albums"][album]["songs"][song]
-
-    if report:
-        save_location = "reports/" + f'{datetime.strftime(start, "%d-%m-%Y")}-{datetime.strftime(end, "%d-%m-%Y")}.json'
-        with open(save_location, "w") as f:
-            f.write(json.dumps(report, indent=4))
-
-        return save_location
-    else:
-        return None
+    return ax
 
 '''
 takes in a period of time to use as the X-axis
@@ -98,409 +68,244 @@ acceptable periods :
 
 Returns path to graph
 '''
-def generate_overall_graph(period : str) -> str:
+def generate_overall_graph(user_id : int, period : str) -> str:
     # Analyze the past 12 months, including this one so far.
     if period == 'month':
-        today = datetime.today()
+        now = datetime.now()
 
-        months = range(1, today.month + 1)
-
-        months_last_year = range(len(months), 12)
-
-        months_with_data = [[], []] # First list is the current year, second is last year
-
-        # Check which of the months in the ranges we have data for
-        days = glob(spotify_times_path + "*-*-*.json")
-
-        for day in days:
-            filename = day.split("/")[-1]
-
-            if "overall" in filename or "last" in filename:
-                continue
-
-            date = filename[:10].split('-') # list with (day, month, year)
-
-            i = 0
-            for x in date:
-                date[i] = int(x)
-                i+=1
-
-            if date[2] == today.year and date[1] in months:
-                if date[1] not in months_with_data[0]:
-                    months_with_data[0].append(date[1])
-
-            elif date[2] == today.year - 1 and date[1] in months_last_year:
-                if date[1] not in months_with_data[1]:
-                    months_with_data[1].append(date[1])
-
-        # last_day = calendar.monthrange(year, month)[1]
-        monthly_totals = []
+        totals = []
         dates = []
+        for i in range(1, 13):
+            start = now - relativedelta(months=i) # Why does normal timedelta not support months?
+            end = now - relativedelta(months=i-1)
+            time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
-        for month in sorted(months_with_data[1]):
-            start = datetime.strptime(f"01-{month}-{today.year-1}", "%d-%m-%Y")
-            end = datetime.strptime(f"{calendar.monthrange(today.year, month)[1]}-{month}-{today.year-1}", "%d-%m-%Y")
+            if not time:
+                break
 
-            report_path = generate_listening_report(start, end)
+            totals.append(time.to_hours())
+            dates.append(start.strftime("%Y-%m-%d"))
 
-            with open(report_path, 'r') as f:
-                report_data = json.loads(f.read())
+        totals = list(reversed(totals))
+        dates = list(reversed(dates))
 
-            monthly_totals.append(msToHour(calculate_total_listening_time(report_data)))
-            dates.append(f'{month}-{today.year-1}')
+        fig, ax = plt.subplots(facecolor="xkcd:black")
+        line = ax.plot(dates, totals)
 
-        for month in sorted(months_with_data[0]):
-            start = datetime.strptime(f"01-{month}-{today.year}", "%d-%m-%Y")
-            end = datetime.strptime(f"{calendar.monthrange(today.year, month)[1]}-{month}-{today.year}", "%d-%m-%Y")
+        color_graph("Monthly Summary", ax, line)
 
-            report_path = generate_listening_report(start, end)
-
-            with open(report_path, 'r') as f:
-                report_data = json.loads(f.read())
-
-            monthly_totals.append(msToHour(calculate_total_listening_time(report_data)))
-            dates.append(f'{month}-{today.year}')
-
-        fig, ax = plt.subplots()
-        ax.plot(dates, monthly_totals)
-        ax.set(xlabel='Date', ylabel='time (hours)', title='Listening Time')
-        ax.grid()
-
-        for i, txt in enumerate(monthly_totals):
-            ax.annotate(txt, (dates[i], monthly_totals[i]))
+        for i, txt in enumerate(totals):
+            ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
 
         fig.savefig("static/month.png")
-        return "static/month.png"
 
     # Graph of the past eight weeks
     elif period == 'week':
-        today = datetime.today()
+        now = datetime.now()
 
-        weeks = []
-        end = today
-        for week in range(0, 9):
-            start = end - timedelta(days=7)
-            weeks.append((start, end))
-            end = start - timedelta(days=1)
-
-        weekly_totals = []
+        totals = []
         dates = []
-        for week in reversed(weeks):
-            report_path = generate_listening_report(week[0], week[1])
 
-            if not report_path:
-                continue
+        for i in range(1, 9):
+            start = now - relativedelta(weeks=i) # Why does normal timedelta not support months?
+            end = now - relativedelta(weeks=i-1)
+            time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
-            with open(report_path, 'r') as f:
-                report_data = json.loads(f.read())
+            if not time:
+                break
 
-            weekly_totals.append(msToHour(calculate_total_listening_time(report_data)))
-            dates.append(f'{week[0].day}-{week[0].month}')
+            totals.append(time.to_hours())
+            dates.append(start.strftime("%Y-%m-%d"))
 
-        fig, ax = plt.subplots()
-        ax.plot(dates, weekly_totals)
-        ax.set(xlabel='Date', ylabel='time (hours)', title='Listening Time')
-        ax.grid()
+        totals = list(reversed(totals))
+        dates = list(reversed(dates))
 
-        for i, txt in enumerate(weekly_totals):
-            ax.annotate(txt, (dates[i], weekly_totals[i]))
+        fig, ax = plt.subplots(facecolor="xkcd:black")
+        line = ax.plot(dates, totals)
+
+        color_graph("Weekly Summary", ax, line)
+
+        for i, txt in enumerate(totals):
+            ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
 
         fig.savefig("static/week.png", bbox_inches='tight')
-        return "static/week.png"
 
     # Graph of the past 14 days
     elif period == 'day':
-        today = datetime.today() - timedelta(days=3)
+        now = datetime.strptime("2023-09-16", "%Y-%m-%d")
 
-        daily_totals = []
+        totals = []
         dates = []
-        for day in range(0, 15):
 
-            with open(spotify_times_path + f"{datetime.strftime(today, '%d-%m-%Y')}.json", 'r') as f:
-                report_data = json.loads(f.read())
+        for i in range(1, 9):
+            start = now - relativedelta(days=i) # Why does normal timedelta not support months?
+            end = now - relativedelta(days=i-1)
+            time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
-            daily_totals.append(msToHour(calculate_total_listening_time(report_data)))
-            dates.append(f'{today.day}')
+            if not time:
+                time = 0
 
-            today = today - timedelta(days=1)
+            totals.append(time.to_hours())
+            dates.append(start.strftime("%m-%d"))
 
-        dates = [a for a in reversed(dates)]
-        daily_totals = [a for a in reversed(daily_totals)]
+        totals = list(reversed(totals))
+        dates = list(reversed(dates))
 
-        fig, ax = plt.subplots()
-        ax.plot(dates, daily_totals)
-        ax.set(xlabel='Date', ylabel='time (hours)')
-        ax.grid()
+        fig, ax = plt.subplots(facecolor="xkcd:black")
+        line = ax.plot(dates, totals)
 
-        for i, txt in enumerate(daily_totals):
-            ax.annotate(txt, (dates[i], daily_totals[i]))
+        color_graph("Daily Summary", ax, line)
+
+        for i, txt in enumerate(totals):
+            ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
 
         fig.savefig("static/day.png", bbox_inches='tight')
-        return "static/day.png"
-
 
     else:
         return 'bad period'
 
+    plt.close()
+    return f'static/{period}.png'
 
-def keyfunc(tup :  tuple) -> int:
-    key, d = tup
-    return d['overall']
 
-def get_top(item_type : Literal['artists', 'albums', 'songs'], top : Optional[int] = None) -> dict:
-    with open(spotify_times_path + "overall.json", 'r') as f:
-        data = json.loads(f.read())
 
-    if item_type == 'artists':
-        data = sorted(data.items(), key=keyfunc, reverse=True)
-        if top:
-            data = data[:top]
+@app.route('/<int:user>/')
+def overview(user : int):
 
-        sorted_artists = {}
-        for artist_tuple in data:
-            artist_name, artist_info = artist_tuple
+    for period in ['day', 'week', 'month']:
+        generate_overall_graph(user, period)
 
-            sorted_artists[artist_name.replace("-", " ").title()] =  (listenTimeFormat(artist_info["overall"]), artist_name)
 
-        return sorted_artists
+    today = datetime.today()
 
-    elif item_type == 'albums':
-        albums = {}
-        for artist in data:
-            for album in data[artist]["albums"]:
-                albums[album] = {
-                    "overall" : data[artist]["albums"][album]["overall"],
-                    "artist" : artist            
-                }
-        data = sorted(albums.items(), key=keyfunc, reverse=True)
-        if top:
-            data = data[:top]
-        
-        sorted_albums = {}
-        for album in data:
-            album_title, album_info = album
+    top_artists = db.get_top_artists(user, top=5)
+    top_albums = db.get_top_albums(user, top=5)
+    top_songs = db.get_top_songs(user, top=5)
 
-            sorted_albums[album_title] = (listenTimeFormat(album_info["overall"]), album_info["artist"].replace("-", " ").title(), album_info['artist'])
+    total_time = db.get_total_time(user).to_hour_and_seconds()
 
-        return sorted_albums
+    artist_count = db.get_artist_count(user)
+    album_count = db.get_album_count(user)
+    song_count = db.get_song_count(user)
 
-    elif item_type == 'songs':
-        songs = {}
-        for artist in data:
-            for album in data[artist]["albums"]:
-                for song in data[artist]["albums"][album]["songs"]:
-                    songs[song] = {
-                        "overall" : data[artist]["albums"][album]["songs"][song],
-                        "artist" : artist            
-                    }
-        data = sorted(songs.items(), key=keyfunc, reverse=True)
-        if top:
-            data = data[:top]
-        
-        sorted_songs = {}
-        for song in data:
-            song_title, song_info = song
 
-            sorted_songs[song_title] = (listenTimeFormat(song_info["overall"]), song_info["artist"].replace("-", " ").title(), song_info["artist"])
+    return render_template('overall.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
 
-        return sorted_songs
+@app.route('/<int:user>/artists/')
+def artists_overview(user: int):
+
+    top_artists = db.get_top_artists(user)
+
+    return render_template('artists_overview.html', data=top_artists)
+
+@app.route('/<int:user>/artists/<artist>/')
+def artist_overview(user: int, artist : str):
+    artist = artist.lower()
+
+    total_time = db.get_artist_total(user, artist).to_hour_and_seconds()
+    top_albums = db.get_artist_top_albums(user, artist)
+    top_songs = db.get_artist_top_songs(user, artist)
+
+    return render_template('artist.html', artist_name=artist.replace('-', ' ').title(), artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
+
+@app.route('/<int:user>/albums/')
+def albums_overview(user : int):
+    top_albums = db.get_top_albums(user)
+
+    return render_template('albums_overview.html', top_albums=top_albums)
+
+@app.route('/<int:user>/songs/')
+def songs_overview(user : int):
+    top_songs = db.get_top_songs(user)
+
+    return render_template('songs_overview.html', top_songs=top_songs)
+
+
+
+@app.route('/<int:user>/month/<int:year>/<int:month>/')
+def month_overview(user : int, year : int, month : int):
+
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
+        return "Invalid month or year."
+
+    top_artists = db.get_top_artists(user, period, top=5)
+    top_albums = db.get_top_albums(user, period, top=5)
+    top_songs = db.get_top_songs(user, period, top=5)
+
+    if not (total_time := db.get_total_time(user, period)):
+        return "No data for this month."
+    total_time = total_time.to_hour_and_seconds()
+
+    artist_count = db.get_artist_count(user, period)
+    album_count = db.get_album_count(user, period)
+    song_count = db.get_song_count(user, period)
+
+
+    links = (f"../../{year}/{month - 1}", f"../../{year}/{month + 1}")
+
+    return render_template('month_overview.html', month_name=calendar.month_name[month], year=year, top_artists=top_artists, top_albums=top_albums, top_songs=top_songs, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
+
+
+@app.route('/<int:user>/month/<int:year>/<int:month>/artists/<artist>/')
+def artist_month_overview(user : int, year : int, month : int, artist : str):
+    artist = artist.lower()
+
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
+        return "Invalid month or year."
+
+    total_time = db.get_artist_total(user, artist, period).to_hour_and_seconds()
+    top_albums = db.get_artist_top_albums(user, artist, period)
+    top_songs = db.get_artist_top_songs(user, artist, period)
+
+    return render_template('artist_month_overview.html', artist_name=artist.replace('-', ' ').title(), month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
+
+@app.route('/<int:user>/month/<int:year>/<int:month>/artists/')
+def artists_month_overview(user : int, year : int, month : int):
+
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
+        return "Invalid month or year."
+
+    top_artists = db.get_top_artists(user, period)
+
+    return render_template('artists_month_overview.html', top_artists=top_artists, month_name=calendar.month_name[month], year=year)
+
+@app.route('/<int:user>/month/<int:year>/<int:month>/albums/')
+def albums_month_overview(user : int, year : int, month : int):
+
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
+        return "Invalid month or year."
+
+    top_albums = db.get_top_albums(user, period)
+
+    return render_template('albums_month_overview.html', top_albums=top_albums, month_name=calendar.month_name[month], year=year)
+
+@app.route('/<int:user>/month/<int:year>/<int:month>/songs/')
+def songs_month_overview(user : int, year : int, month : int):
+
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
+        return "Invalid month or year."
+
+    top_songs = db.get_top_songs(user, period)
+
+    return render_template('songs_month_overview.html', top_songs=top_songs, month_name=calendar.month_name[month], year=year)
+
 
 
 @app.route('/')
 def root():
-    for period in ['day', 'week', 'month']:
-        generate_overall_graph(period)
+    return 'home'
 
-    today = datetime.today()
 
-    top_artists = get_top('artists', top=5)
-    top_albums = get_top('albums', top=5)
-    top_songs = get_top('songs', top=5)
 
-    with open(spotify_times_path + "overall.json", 'r') as f:
-        data = json.loads(f.read())
-
-    total_time = listenTimeFormat(calculate_total_listening_time(data))
-    artist_count = len(data)
-
-    # For total albums/songs count
-    all_albums = []
-    all_songs = []
-    for artist in data:
-        for album in data[artist]["albums"]:
-            if album not in all_albums:
-                all_albums.append(album)
-            for song in data[artist]["albums"][album]["songs"]:
-                if song not in all_songs:
-                    all_songs.append(song)
-
-    return render_template('home.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=len(all_albums), song_count=len(all_songs))
-
-@app.route('/overall/')
-def overall():
-    return redirect('/')
-
-@app.route('/overall/artists/')
-def overall_artists():
-
-    top_artists = get_top('artists')
-
-    return render_template('overall_artists.html', data=top_artists)
-
-@app.route('/overall/albums/')
-def overall_albums():
-    top_albums = get_top('albums')
-
-    return render_template('overall_albums.html', top_albums=top_albums)
-
-@app.route('/overall/songs/')
-def overall_songs():
-    top_songs = get_top('songs')
-
-    return render_template('overall_songs.html', top_songs=top_songs)
-
-@app.route('/month/<year>/<month>/')
-def overall_month(year : str, month : str):
-    month = int(month)
-    year = int(year)
-
-    today = datetime.now()
-
-    if month > today.month or month < 1:
-        return 'Month is invalid'
-
-    last_day = calendar.monthrange(year, month)[1]
-
-    if month < 10:
-        start = datetime.strptime(f"01-0{month}-{year}", "%d-%m-%Y")
-    else:
-        start = datetime.strptime(f"01-{month}-{year}", "%d-%m-%Y")
-
-    if month == today.month:
-        end = today
-    else:
-        end = datetime.strptime(f"{last_day}-{month}-{year}", "%d-%m-%Y")
-
-    filename = f'{datetime.strftime(start, "%d-%m-%Y")}-{datetime.strftime(end, "%d-%m-%Y")}.json'
-
-    if not exists("reports/" + filename) or month == today.month:
-        generate_listening_report(start, end)
-
-    with open("reports/" + filename, 'r') as f:
-        data = json.loads(f.read())
-
-    total_time = listenTimeFormat(calculate_total_listening_time(data))
-    artist_count = len(data)
-
-    data = sorted(data.items(), key=keyfunc, reverse=True)
-
-    sorted_artists = {}
-    for artist_tuple in data:
-        artist_name, artist_info = artist_tuple
-
-        sorted_artists[artist_name.replace("-", " ").title()] =  (listenTimeFormat(artist_info["overall"]), artist_name)
-
-    links = (f"../../{year}/{month - 1}", f"../../{year}/{month + 1}")
-
-    return render_template('overall_month.html', data=sorted_artists, month_name=calendar.month_name[month], year=year, selector_links=links, month_total=total_time, artist_total=artist_count)
-
-
-
-@app.route('/month/<year>/<month>/<artist>/')
-def artist_month(year : str, month : str, artist : str):
-    artist = artist.lower()
-    month = int(month)
-    year = int(year)
-
-    today = datetime.now()
-
-    if month > today.month or month < 1:
-        return 'Month is invalid'
-
-    last_day = calendar.monthrange(year, month)[1]
-
-    if month < 10:
-        start = datetime.strptime(f"01-0{month}-{year}", "%d-%m-%Y")
-    else:
-        start = datetime.strptime(f"01-{month}-{year}", "%d-%m-%Y")
-
-    if month == today.month:
-        end = today
-    else:
-        end = datetime.strptime(f"{last_day}-{month}-{year}", "%d-%m-%Y")
-
-    filename = f'{datetime.strftime(start, "%d-%m-%Y")}-{datetime.strftime(end, "%d-%m-%Y")}.json'
-
-    if not exists("reports/" + filename) or month == today.month:
-        generate_listening_report(start, end)
-
-    with open("reports/" + filename, 'r') as f:
-        data = json.loads(f.read())
-
-    total_time = listenTimeFormat(data[artist]["overall"])
-
-    # Sort albums by listen time
-    albums_sorted = sorted(data[artist]["albums"].items(), key=keyfunc, reverse=True)
-
-    top_albums = {}
-    for album_tuple in albums_sorted:
-        album_name, album_info = album_tuple
-
-        top_albums[album_name] = listenTimeFormat(album_info["overall"])
-
-
-    # Make dict of top songs
-    all_songs = {}
-    for album in data[artist]["albums"]:
-        for song in data[artist]["albums"][album]["songs"]:
-            all_songs[song] = data[artist]["albums"][album]["songs"][song]
-
-    sorted_songs = {k: v for k, v in sorted(all_songs.items(), key=lambda item: item[1], reverse=True)}
-
-    top_songs = {}
-    for song in sorted_songs:
-        top_songs[song] = listenTimeFormat(sorted_songs[song])
-
-    return render_template('artist_month.html', artist_name=artist.replace('-', ' ').title(), month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
-
-
-
-
-@app.route('/overall/<artist>/')
-def artist(artist : str):
-    artist = artist.lower()
-
-
-    with open(spotify_times_path + "overall.json", 'r') as f:
-        data = json.loads(f.read())
-
-    total_time = listenTimeFormat(data[artist]["overall"])
-
-    # Sort albums by listen time
-    albums_sorted = sorted(data[artist]["albums"].items(), key=keyfunc, reverse=True)
-
-    top_albums = {}
-    for album_tuple in albums_sorted:
-        album_name, album_info = album_tuple
-
-        top_albums[album_name] = listenTimeFormat(album_info["overall"])
-
-
-    # Make dict of top songs
-    all_songs = {}
-    for album in data[artist]["albums"]:
-        for song in data[artist]["albums"][album]["songs"]:
-            all_songs[song] = data[artist]["albums"][album]["songs"][song]
-
-    sorted_songs = {k: v for k, v in sorted(all_songs.items(), key=lambda item: item[1], reverse=True)}
-
-    top_songs = {}
-    for song in sorted_songs:
-        top_songs[song] = listenTimeFormat(sorted_songs[song])
-
-    return render_template('artist.html', artist_name=artist.replace('-', ' ').title(), artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
-
-
-@app.route('/test/')
-def test():
-    return generate_overall_graph("day")
+if __name__ == '__main__':
+    serve(app, host='0.0.0.0', port=802)

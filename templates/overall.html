@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <header>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Overview</title>
+  </header>
+  <body>
+    <div class="TitleBlock">Music Stat Display Home</div>
+    <div class="TitleBlock"><a href="./month/{{ year }}/{{ month }}/"><u>Check this month's stats</u></a></div>
+    <div class="TitleBlock">Total Listening Time: {{ total_time[0] }} hours {{ total_time[1] }} minutes</div>
+    <div class="TitleBlock">Total Artists: {{ artist_count }}</div>
+    <div class="TitleBlock">Total Albums: {{ album_count }}</div>
+    <div class="TitleBlock">Total Songs: {{ song_count }}</div>
+
+
+    <div class="Summary">
+      <div class="SummaryBlock">
+        <header><a href="./artists/"><u>Top Artists</u></a></header>
+        {% for artist in top_artists %}
+          <p>{{ loop.index }}. <a href="./artists/{{ top_artists[artist][1] }}">{{ artist }}</a> : {{ top_artists[artist][0][0] }} hours {{ top_artists[artist][0][1] }} minutes</p>
+        {% endfor %}
+      </div>
+      <div class="SummaryBlock">
+        <header><a href="./albums/"><u>Top Albums</u></a></header>
+        {% for album in top_albums %}
+          <p>{{ loop.index }}. {{ album }} <b>by</b> <a href="./artists/{{ top_albums[album][2] }}">{{ top_albums[album][1] }}</a>: {{ top_albums[album][0][0] }} hours {{ top_albums[album][0][1] }} minutes</p>
+        {% endfor %}
+      </div>
+      <div class="SummaryBlock">
+        <header><a href="./songs/"><u>Top Songs</u></a></header>
+        {% for song in top_songs %}
+          <p>{{ loop.index }}. {{ song }} <b>by</b> <a href="./artists/{{ top_songs[song][2] }}">{{ top_songs[song][1] }}</a>: {{ top_songs[song][0][0] }} hours {{ top_songs[song][0][1] }} minutes</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="Graphs">
+      <div class="Graph">
+        <img src="{{ url_for('static', filename='day.png') }}">
+      </div>
+      <div class="Graph">
+        <img src="{{ url_for('static', filename='week.png') }}">
+      </div>
+      <div class="Graph">
+        <img src="{{ url_for('static', filename='month.png') }}">
+      </div>
+    </div>
+  </body>
+</html>

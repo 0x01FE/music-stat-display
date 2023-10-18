@@ -6,3 +6,6 @@ reports/*
 .vscode
 jackson/*
 *.png
+*.yml
+*.sh
+

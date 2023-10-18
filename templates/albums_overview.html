@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <title>overall albums</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </header>
+    <body>
+        <a href=".."><u><< back</u></a>
+        <div class="TopTen">
+            <header><b><u>Top Albums</u></b></header>
+            {% for album in top_albums %}
+            <p>{{ loop.index }}. {{ album }} by <a href="../artists/{{ top_albums[album][2] }}">{{ top_albums[album][1] }}</a>: {{ top_albums[album][0][0] }} hours {{ top_albums[album][0][1] }} minutes</p>
+            {% endfor %}
+        </div>
+    </body>
+</html>
