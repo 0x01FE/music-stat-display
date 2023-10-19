@@ -1,23 +1,38 @@
-import sqlite3 as sql
-from configparser import ConfigParser
-from typing import Optional
-from collections import OrderedDict
+import sqlite3
+import configparser
+import typing
+import collections
+import os
 
+import sqlparse
 
 import listen_time
 import date_range
 
-config = ConfigParser()
+config = configparser.ConfigParser()
 config.read("config.ini")
 
 
 DATABASE = config['PATHES']['DATABASE']
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+SQL_DIR = "./sql/"
 
+QUERIES = {}
+
+# Get SQL Files
+for sql_file in os.listdir(SQL_DIR):
+    file_name = sql_file.split('.')[0]
+
+    with open(sql_file, 'r') as f:
+        raw_data = f.read()
+
+    # SQLparse is used because there are multiple queries in each file + comments
+    QUERIES[file_name] = sqlparse.parse(raw_data)
 
 
 class Opener():
     def __init__(self):
-        self.con = sql.connect(DATABASE)
+        self.con = sqlite3.connect(DATABASE)
 
     def __enter__(self):
         return self.con, self.con.cursor()
@@ -29,25 +44,25 @@ class Opener():
 
 
 
-def get_top_artists(user_id : int, range : date_range.DateRange | None = None, top : Optional[int] = None) -> dict:
+def get_top_artists(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> dict:
     dated = False
+    args = [user_id]
     if range:
         dated = True
-        start, end = range.to_str()
+        for date in range.to_str():
+            args.append(date)
 
 
     with Opener() as (con, cur):
-        if dated:
-            cur.execute("SELECT artist_name, SUM(total_time) FROM (SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ? GROUP BY dated.song, songs.artist) GROUP BY artist_name ORDER BY SUM(total_time) DESC", [user_id, start, end])
-        else:
-            cur.execute("SELECT artist_name, SUM(total_time) FROM (SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id WHERE dated.user = ? GROUP BY dated.song, songs.artist) GROUP BY artist_name ORDER BY SUM(total_time) DESC", [user_id])
+        cur.execute(QUERIES["top_artists"][dated], args)
+
         results = cur.fetchall()
 
     if top:
         results = results[:top]
 
     # Format results
-    top = OrderedDict()
+    top = collections.OrderedDict()
     for artist in results:
         top[artist[0].replace('-', ' ').title()] = (listen_time.ListenTime(artist[1]).to_hour_and_seconds(), artist[0])
 
@@ -55,7 +70,7 @@ def get_top_artists(user_id : int, range : date_range.DateRange | None = None, t
 
 
 
-def get_top_albums(user_id : int, range : date_range.DateRange | None = None, top : Optional[int] = None) -> dict:
+def get_top_albums(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> dict:
     dated = False
     if range:
         dated = True
@@ -72,7 +87,7 @@ def get_top_albums(user_id : int, range : date_range.DateRange | None = None, to
         results = results[:top]
 
     # Format results
-    top = OrderedDict()
+    top = collections.OrderedDict()
     for album in results:
         top[album[1]] = (listen_time.ListenTime(album[2]).to_hour_and_seconds(), album[0].replace('-', ' ').title(), album[0])
 
@@ -80,7 +95,7 @@ def get_top_albums(user_id : int, range : date_range.DateRange | None = None, to
 
 
 
-def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top : Optional[int] = None) -> dict:
+def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> dict:
     dated = False
     if range:
         dated = True
@@ -97,7 +112,7 @@ def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top
         results = results[:top]
 
     # Format results
-    top = OrderedDict()
+    top = collections.OrderedDict()
     for song in results:
         top[song[1]] = (listen_time.ListenTime(song[2]).to_hour_and_seconds(), song[0].replace('-', ' ').title(), song[0])
 
@@ -190,7 +205,7 @@ def get_artist_top_albums(user_id : int, artist : str, range : date_range.DateRa
         results = cur.fetchall()
 
     # Format results
-    top = OrderedDict()
+    top = collections.OrderedDict()
     for album in results:
         top[album[1]] = listen_time.ListenTime(album[2]).to_hour_and_seconds()
 
@@ -211,7 +226,7 @@ def get_artist_top_songs(user_id : int, artist : str, range : date_range.DateRan
         results = cur.fetchall()
 
     # Format results
-    top = OrderedDict()
+    top = collections.OrderedDict()
     for song in results:
         top[song[1]] = listen_time.ListenTime(song[2]).to_hour_and_seconds()
 
