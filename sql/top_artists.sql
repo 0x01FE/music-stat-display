@@ -13,7 +13,6 @@ FROM
     INNER JOIN artists ON songs.artist=artists.id
     WHERE
         "listen-events".user = ?
-        AND DATE("listen-events".date) BETWEEN ? AND ?
     GROUP BY
         "listen-events".song,
         songs.artist)
