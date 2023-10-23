@@ -23,11 +23,11 @@ QUERIES = {}
 for sql_file in os.listdir(SQL_DIR):
     file_name = sql_file.split('.')[0]
 
-    with open(sql_file, 'r') as f:
+    with open(SQL_DIR + sql_file, 'r') as f:
         raw_data = f.read()
 
     # SQLparse is used because there are multiple queries in each file + comments
-    QUERIES[file_name] = sqlparse.parse(raw_data)
+    QUERIES[file_name] = sqlparse.split(raw_data)
 
 
 class Opener():
@@ -72,15 +72,15 @@ def get_top_artists(user_id : int, range : date_range.DateRange | None = None, t
 
 def get_top_albums(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> dict:
     dated = False
+    args = [user_id]
     if range:
         dated = True
-        start, end = range.to_str()
+        for date in range.to_str():
+            args.append(date)
 
     with Opener() as (con, cur):
-        if dated:
-            cur.execute("SELECT artist_name, album_name, SUM(total_time) total_time FROM (SELECT artists.name artist_name, albums.name album_name, songs.name song_name, COUNT(songs.name) * songs.length total_time FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ? GROUP BY songs.name) GROUP BY album_name ORDER BY total_time DESC", [user_id, start, end])
-        else:
-            cur.execute("SELECT artist_name, album_name, SUM(total_time) total_time FROM (SELECT artists.name artist_name, albums.name album_name, songs.name song_name, COUNT(songs.name) * songs.length total_time FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? GROUP BY songs.name) GROUP BY album_name ORDER BY total_time DESC", [user_id])
+        cur.execute(QUERIES["top_albums"][dated], args)
+
         results = cur.fetchall()
 
     if top:
@@ -97,15 +97,15 @@ def get_top_albums(user_id : int, range : date_range.DateRange | None = None, to
 
 def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> dict:
     dated = False
+    args = [user_id]
     if range:
         dated = True
-        start, end = range.to_str()
+        for date in range.to_str():
+            args.append(date)
 
     with Opener() as (con, cur):
-        if dated:
-            cur.execute("SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ? GROUP BY dated.song, songs.artist ORDER BY total_time DESC", [user_id, start, end])
-        else:
-            cur.execute("SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? GROUP BY dated.song, songs.artist ORDER BY total_time DESC", [user_id])
+        cur.execute(QUERIES["top_songs"][dated], args)
+
         results = cur.fetchall()
 
     if top:
@@ -122,15 +122,15 @@ def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top
 
 def get_total_time(user_id : int, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
     dated = False
+    args = [user_id]
     if range:
         dated = True
-        start, end = range.to_str()
+        for date in range.to_str():
+            args.append(date)
 
     with Opener() as (con, cur):
-        if dated:
-            cur.execute("SELECT SUM(total_time) total_time FROM (SELECT artists.name artist_name, songs.name song_name, dated.song song_id, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ? GROUP BY dated.song, songs.artist)", [user_id, start, end])
-        else:
-            cur.execute("SELECT SUM(total_time) total_time FROM (SELECT artists.name artist_name, songs.name song_name, dated.song song_id, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? GROUP BY dated.song, songs.artist)", [user_id])
+        cur.execute(QUERIES["total_time"][dated], args)
+
         results = cur.fetchall()
 
     if results[0][0]:
@@ -142,15 +142,15 @@ def get_total_time(user_id : int, range : date_range.DateRange | None = None) ->
 
 def get_artist_count(user_id : int, range : date_range.DateRange | None = None) -> int:
     dated = False
+    args = [user_id]
     if range:
         dated = True
-        start, end = range.to_str()
+        for date in range.to_str():
+            args.append(date)
 
     with Opener() as (con, cur):
-        if dated:
-            cur.execute("SELECT COUNT(DISTINCT songs.artist) artist_count FROM dated INNER JOIN songs ON dated.song=songs.id WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ?", [user_id, start, end])
-        else:
-            cur.execute("SELECT COUNT(DISTINCT songs.artist) artist_count FROM dated INNER JOIN songs ON dated.song=songs.id WHERE dated.user = ?", [user_id])
+        cur.execute(QUERIES["artist_count"][dated], args)
+
         results = cur.fetchall()
 
     return results[0][0]
@@ -159,15 +159,15 @@ def get_artist_count(user_id : int, range : date_range.DateRange | None = None) 
 
 def get_album_count(user_id : int, range : date_range.DateRange | None = None) -> int:
     dated = False
+    args = [user_id]
     if range:
         dated = True
-        start, end = range.to_str()
+        for date in range.to_str():
+            args.append(date)
 
     with Opener() as (con, cur):
-        if dated:
-            cur.execute("SELECT COUNT(DISTINCT dated.song) song_count FROM dated WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ?", [user_id, start, end])
-        else:
-            cur.execute("SELECT COUNT(DISTINCT dated.song) song_count FROM dated WHERE dated.user = ?", [user_id])
+        cur.execute(QUERIES["album_count"][dated], args)
+
         results = cur.fetchall()
 
     return results[0][0]
@@ -176,15 +176,15 @@ def get_album_count(user_id : int, range : date_range.DateRange | None = None) -
 
 def get_song_count(user_id : int, range : date_range.DateRange | None = None) -> int:
     dated = False
+    args = [user_id]
     if range:
         dated = True
-        start, end = range.to_str()
+        for date in range.to_str():
+            args.append(date)
 
     with Opener() as (con, cur):
-        if dated:
-            cur.execute("SELECT COUNT(DISTINCT dated.song) song_count FROM dated WHERE dated.user = ? AND DATE(dated.date) BETWEEN ? AND ?", [user_id, start, end])
-        else:
-            cur.execute("SELECT COUNT(DISTINCT dated.song) song_count FROM dated WHERE dated.user = ?", [user_id])
+        cur.execute(QUERIES["song_count"][dated], args)
+
         results = cur.fetchall()
 
     return results[0][0]
@@ -193,15 +193,15 @@ def get_song_count(user_id : int, range : date_range.DateRange | None = None) ->
 
 def get_artist_top_albums(user_id : int, artist : str, range : date_range.DateRange | None = None) -> dict:
     dated = False
+    args = [user_id]
     if range:
         dated = True
-        start, end = range.to_str()
+        for date in range.to_str():
+            args.append(date)
 
     with Opener() as (con, cur):
-        if dated:
-            cur.execute("SELECT artist_name, album_name, SUM(total_time) total_time FROM (SELECT artists.name artist_name, albums.name album_name, songs.name song_name, COUNT(songs.name) * songs.length total_time FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND artists.name = ? AND DATE(dated.date) BETWEEN ? AND ? GROUP BY songs.name) GROUP BY album_name ORDER BY total_time DESC", [user_id, artist, start, end])
-        else:
-            cur.execute("SELECT artist_name, album_name, SUM(total_time) total_time FROM (SELECT artists.name artist_name, albums.name album_name, songs.name song_name, COUNT(songs.name) * songs.length total_time FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND artists.name = ? GROUP BY songs.name) GROUP BY album_name ORDER BY total_time DESC", [user_id, artist])
+        cur.execute(QUERIES["top_artist_albums"][dated], args)
+
         results = cur.fetchall()
 
     # Format results
@@ -214,15 +214,15 @@ def get_artist_top_albums(user_id : int, artist : str, range : date_range.DateRa
 
 def get_artist_top_songs(user_id : int, artist : str, range : date_range.DateRange | None = None) -> dict:
     dated = False
+    args = [user_id]
     if range:
         dated = True
-        start, end = range.to_str()
+        for date in range.to_str():
+            args.append(date)
 
     with Opener() as (con, cur):
-        if dated:
-            cur.execute("SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND artists.name = ? AND DATE(dated.date) BETWEEN ? AND ? GROUP BY dated.song, songs.artist ORDER BY total_time DESC", [user_id, artist, start, end])
-        else:
-            cur.execute("SELECT artists.name artist_name, songs.name song_name, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id INNER JOIN albums on songs.album=albums.id WHERE dated.user = ? AND artists.name = ? GROUP BY dated.song, songs.artist ORDER BY total_time DESC", [user_id, artist])
+        cur.execute(QUERIES["top_artist_songs"][dated], args)
+
         results = cur.fetchall()
 
     # Format results
@@ -235,15 +235,15 @@ def get_artist_top_songs(user_id : int, artist : str, range : date_range.DateRan
 
 def get_artist_total(user_id : int, artist : str, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
     dated = False
+    args = [user_id]
     if range:
         dated = True
-        start, end = range.to_str()
+        for date in range.to_str():
+            args.append(date)
 
     with Opener() as (con, cur):
-        if dated:
-            cur.execute("SELECT SUM(total_time) total_time FROM (SELECT artists.name artist_name, songs.name song_name, dated.song song_id, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id WHERE dated.user = ? AND artists.name = ? AND DATE(dated.date) BETWEEN ? AND ? GROUP BY dated.song, songs.artist)", [user_id, artist, start, end])
-        else:
-            cur.execute("SELECT SUM(total_time) total_time FROM (SELECT artists.name artist_name, songs.name song_name, dated.song song_id, songs.length * COUNT(songs.name) total_time, COUNT(songs.name) cnt FROM dated INNER JOIN songs ON dated.song=songs.id INNER JOIN artists ON songs.artist=artists.id WHERE dated.user = ? AND artists.name = ? GROUP BY dated.song, songs.artist)", [user_id, artist])
+        cur.execute(QUERIES["artist_total_time"][dated], args)
+
         results = cur.fetchall()
 
     if results[0][0]:
