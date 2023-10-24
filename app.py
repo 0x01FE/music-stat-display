@@ -164,7 +164,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
     else:
         return 'bad period'
 
-    plt.close()
+    matplotlib.pyplot.close()
     return f'static/{period}.png'
 
 
