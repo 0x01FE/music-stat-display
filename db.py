@@ -112,9 +112,14 @@ def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top
         results = results[:top]
 
     # Format results
-    top = collections.OrderedDict()
+    top: list[tuple[tuple[int, float], str, str]] = []
     for song in results:
-        top[song[1]] = (listen_time.ListenTime(song[2]).to_hour_and_seconds(), song[0].replace('-', ' ').title(), song[0])
+        artist_name: str = song[0].replace('-', ' ').title()
+        artist_id: int = song[1]
+        song_name: str = song[2]
+        time: tuple[int, float] = listen_time.ListenTime(song[3]).to_hour_and_seconds()
+
+        top.append((artist_name, artist_id, song_name, time))
 
     return top
 
@@ -193,7 +198,7 @@ def get_song_count(user_id : int, range : date_range.DateRange | None = None) ->
 
 def get_artist_top_albums(user_id : int, artist : str, range : date_range.DateRange | None = None) -> dict:
     dated = False
-    args = [user_id]
+    args = [user_id, artist]
     if range:
         dated = True
         for date in range.to_str():
@@ -214,7 +219,7 @@ def get_artist_top_albums(user_id : int, artist : str, range : date_range.DateRa
 
 def get_artist_top_songs(user_id : int, artist : str, range : date_range.DateRange | None = None) -> dict:
     dated = False
-    args = [user_id]
+    args = [user_id, artist]
     if range:
         dated = True
         for date in range.to_str():
@@ -235,7 +240,7 @@ def get_artist_top_songs(user_id : int, artist : str, range : date_range.DateRan
 
 def get_artist_total(user_id : int, artist : str, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
     dated = False
-    args = [user_id]
+    args = [user_id, artist]
     if range:
         dated = True
         for date in range.to_str():

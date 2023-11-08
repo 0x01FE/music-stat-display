@@ -11,6 +11,7 @@ import matplotlib.pyplot
 
 import db
 import date_range
+import listen_time
 
 
 matplotlib.use("agg")
@@ -71,7 +72,7 @@ Returns path to graph
 def generate_overall_graph(user_id : int, period : str) -> str:
     # Analyze the past 12 months, including this one so far.
     if period == 'month':
-        now = datetime.now()
+        now = datetime.datetime.now()
 
         totals = []
         dates = []
@@ -101,7 +102,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
 
     # Graph of the past eight weeks
     elif period == 'week':
-        now = datetime.now()
+        now = datetime.datetime.now()
 
         totals = []
         dates = []
@@ -112,7 +113,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
             time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
             if not time:
-                break
+                time = listen_time.ListenTime(0)
 
             totals.append(time.to_hours())
             dates.append(start.strftime("%Y-%m-%d"))
@@ -132,7 +133,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
 
     # Graph of the past 14 days
     elif period == 'day':
-        now = datetime.strptime("2023-09-16", "%Y-%m-%d")
+        now = datetime.datetime.strptime("2023-09-16", "%Y-%m-%d")
 
         totals = []
         dates = []
@@ -143,7 +144,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
             time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
             if not time:
-                time = 0
+                time = listen_time.ListenTime(0)
 
             totals.append(time.to_hours())
             dates.append(start.strftime("%m-%d"))
