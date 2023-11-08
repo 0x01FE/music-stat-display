@@ -112,9 +112,14 @@ def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top
         results = results[:top]
 
     # Format results
-    top = collections.OrderedDict()
+    top: list[tuple[tuple[int, float], str, str]] = []
     for song in results:
-        top[song[1]] = (listen_time.ListenTime(song[2]).to_hour_and_seconds(), song[0].replace('-', ' ').title(), song[0])
+        artist_name: str = song[0].replace('-', ' ').title()
+        artist_id: int = song[1]
+        song_name: str = song[2]
+        time: tuple[int, float] = listen_time.ListenTime(song[3]).to_hour_and_seconds()
+
+        top.append((artist_name, artist_id, song_name, time))
 
     return top
 

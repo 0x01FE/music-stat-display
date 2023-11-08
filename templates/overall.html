@@ -30,7 +30,7 @@
       <div class="SummaryBlock">
         <header><a href="./songs/"><u>Top Songs</u></a></header>
         {% for song in top_songs %}
-          <p>{{ loop.index }}. {{ song }} <b>by</b> <a href="./artists/{{ top_songs[song][2] }}">{{ top_songs[song][1] }}</a>: {{ top_songs[song][0][0] }} hours {{ top_songs[song][0][1] }} minutes</p>
+          <p>{{ loop.index }}. {{ song[2] }} <u>by</u> <a href="../artists/{{ song[1] }}">{{ song[0] }}</a>: {{ song[3][0] }} hours {{ song[3][1] }} minutes</p>
         {% endfor %}
       </div>
     </div>
