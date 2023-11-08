@@ -27,7 +27,11 @@ for sql_file in os.listdir(SQL_DIR):
         raw_data = f.read()
 
     # SQLparse is used because there are multiple queries in each file + comments
-    QUERIES[file_name] = sqlparse.split(raw_data)
+    statements = sqlparse.split(raw_data)
+    if len(statements) == 1:
+        QUERIES[file_name] = statements[0]
+    else:
+        QUERIES[file_name] = sqlparse.split(raw_data)
 
 
 class Opener():
@@ -205,7 +209,7 @@ def get_song_count(user_id : int, range : date_range.DateRange | None = None) ->
 
 
 
-def get_artist_top_albums(user_id : int, artist : str, range : date_range.DateRange | None = None) -> dict:
+def get_artist_top_albums(user_id : int, artist : int, range : date_range.DateRange | None = None) -> dict:
     dated = False
     args = [user_id, artist]
     if range:
@@ -226,7 +230,7 @@ def get_artist_top_albums(user_id : int, artist : str, range : date_range.DateRa
     return top
 
 
-def get_artist_top_songs(user_id : int, artist : str, range : date_range.DateRange | None = None) -> dict:
+def get_artist_top_songs(user_id : int, artist : int, range : date_range.DateRange | None = None) -> dict:
     dated = False
     args = [user_id, artist]
     if range:
@@ -247,7 +251,7 @@ def get_artist_top_songs(user_id : int, artist : str, range : date_range.DateRan
     return top
 
 
-def get_artist_total(user_id : int, artist : str, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
+def get_artist_total(user_id : int, artist : int, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
     dated = False
     args = [user_id, artist]
     if range:
@@ -262,7 +266,14 @@ def get_artist_total(user_id : int, artist : str, range : date_range.DateRange |
 
     if results[0][0]:
         return listen_time.ListenTime(results[0][0])
-    else:
-        return None
+    return None
 
+def get_artist_name(artist : int) -> str | None:
+    with Opener() as (con, cur):
+        cur.execute(QUERIES["get_artist_name"], [artist,])
 
+        results = cur.fetchall()
+
+    if results:
+        return results[0][0].replace('-', ' ').title()
+    return None
