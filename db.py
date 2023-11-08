@@ -62,9 +62,13 @@ def get_top_artists(user_id : int, range : date_range.DateRange | None = None, t
         results = results[:top]
 
     # Format results
-    top = collections.OrderedDict()
+    top = []
     for artist in results:
-        top[artist[0].replace('-', ' ').title()] = (listen_time.ListenTime(artist[1]).to_hour_and_seconds(), artist[0])
+        artist_name: str = artist[0].replace('-', ' ').title()
+        artist_id: str = artist[1]
+        time: tuple[int, float] = listen_time.ListenTime(artist[2]).to_hour_and_seconds()
+
+        top.append((artist_name, artist_id, time))
 
     return top
 
@@ -87,9 +91,14 @@ def get_top_albums(user_id : int, range : date_range.DateRange | None = None, to
         results = results[:top]
 
     # Format results
-    top = collections.OrderedDict()
+    top = []
     for album in results:
-        top[album[1]] = (listen_time.ListenTime(album[2]).to_hour_and_seconds(), album[0].replace('-', ' ').title(), album[0])
+        artist_name: str = album[0].replace('-', ' ').title()
+        artist_id: int = album[1]
+        album_name: str = album[2]
+        time: tuple[int, float] = listen_time.ListenTime(album[3]).to_hour_and_seconds()
+
+        top.append((artist_name, artist_id, album_name, time))
 
     return top
 

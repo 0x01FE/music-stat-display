@@ -10,7 +10,7 @@
         <div class="TopTen">
             <header><b><u>Top Albums</u></b></header>
             {% for album in top_albums %}
-            <p>{{ loop.index }}. {{ album }} by <a href="../artists/{{ top_albums[album][2] }}">{{ top_albums[album][1] }}</a>: {{ top_albums[album][0][0] }} hours {{ top_albums[album][0][1] }} minutes</p>
+                <p>{{ loop.index }}. {{ album[2] }} by <a href="../artists/{{ album[1] }}">{{ album[0] }}</a>: {{ album[3][0] }} hours {{ album[3][1] }} minutes</p>
             {% endfor %}
         </div>
     </body>

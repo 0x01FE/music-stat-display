@@ -197,7 +197,7 @@ def artists_overview(user: int):
 
     top_artists = db.get_top_artists(user)
 
-    return flask.render_template('artists_overview.html', data=top_artists)
+    return flask.render_template('artists_overview.html', top_artists=top_artists)
 
 @app.route('/<int:user>/artists/<artist>/')
 def artist_overview(user: int, artist : str):
@@ -306,7 +306,7 @@ def songs_month_overview(user : int, year : int, month : int):
 def root():
     return 'home'
 
+app.run()
 
-
-if __name__ == '__main__':
-    waitress.serve(app, host='0.0.0.0', port=802)
+# if __name__ == '__main__':
+#     waitress.serve(app, host='0.0.0.0', port=802)

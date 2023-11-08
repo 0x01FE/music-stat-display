@@ -1,10 +1,12 @@
 -- Top Artists
 SELECT
     artist_name,
+	artist_id,
     sum(time)
 FROM
     (SELECT
         artists.name artist_name,
+		artists.id artist_id,
         songs.name song_name,
         SUM("listen-events".time) time
     FROM
@@ -24,10 +26,12 @@ ORDER BY
 -- Top Artists with date range
 SELECT
     artist_name,
+	artist_id,
     sum(time)
 FROM
     (SELECT
         artists.name artist_name,
+		artists.id artist_id,
         songs.name song_name,
         SUM("listen-events".time) time
     FROM
