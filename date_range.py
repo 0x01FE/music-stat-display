@@ -19,7 +19,7 @@ class DateRange:
 
         today = datetime.datetime.today()
 
-        if month > today.month or month < 1 or year > today.year or year < 2023:
+        if month < 1 or year > today.year:
             return False
 
 
