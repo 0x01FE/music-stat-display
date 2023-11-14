@@ -8,7 +8,7 @@ FROM
 		artists.name artist_name,
 		albums.name album_name,
 		songs.name song_name,
-		SUM("listen-events".time) time
+		SUM("listen-events".time) / COUNT(DISTINCT artists.id) time
 	FROM
 		"listen-events"
 	INNER JOIN songs ON "listen-events".song=songs.id
@@ -17,8 +17,7 @@ FROM
 	WHERE
 		"listen-events".user = ?
 	GROUP BY
-		"listen-events".song,
-		songs.artist)
+		"listen-events".song)
 GROUP BY
 	album_name
 ORDER BY
@@ -34,7 +33,7 @@ FROM
 		artists.name artist_name,
 		albums.name album_name,
 		songs.name song_name,
-		SUM("listen-events".time) time
+		SUM("listen-events".time) / COUNT(DISTINCT artists.id) time
 	FROM
 		"listen-events"
 	INNER JOIN songs ON "listen-events".song=songs.id
@@ -42,10 +41,9 @@ FROM
 	INNER JOIN albums on songs.album=albums.id
 	WHERE
 		"listen-events".user = ?
-        AND DATE("listen-events".date) BETWEEN ? AND ?
+		AND DATE("listen-events".date) BETWEEN ? AND ?
 	GROUP BY
-		"listen-events".song,
-		songs.artist)
+		"listen-events".song)
 GROUP BY
 	album_name
 ORDER BY

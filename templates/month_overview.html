@@ -16,8 +16,8 @@
         <div class="Summary">
             <div class="SummaryBlock">
                 <header><a href="./artists/"><u>Top Artists</u></a></header>
-                {% for artist in data %}
-                    <p>{{ loop.index }}. <a href="./{{ data[artist][1] }}">{{ artist }}</a> : {{ data[artist][0][0] }} hours {{ data[artist][0][1] }} minutes</p>
+                {% for artist in top_artists %}
+                   <p>{{ loop.index }}. <a href="./artists/{{ top_artists[artist][1] }}">{{ artist }}</a> : {{ top_artists[artist][0][0] }} hours {{ top_artists[artist][0][1] }} minutes</p>
                 {% endfor %}
             </div>
             <div class="SummaryBlock">
