@@ -27,7 +27,11 @@ for sql_file in os.listdir(SQL_DIR):
         raw_data = f.read()
 
     # SQLparse is used because there are multiple queries in each file + comments
-    QUERIES[file_name] = sqlparse.split(raw_data)
+    statements = sqlparse.split(raw_data)
+    if len(statements) == 1:
+        QUERIES[file_name] = statements[0]
+    else:
+        QUERIES[file_name] = sqlparse.split(raw_data)
 
 
 class Opener():
@@ -62,9 +66,13 @@ def get_top_artists(user_id : int, range : date_range.DateRange | None = None, t
         results = results[:top]
 
     # Format results
-    top = collections.OrderedDict()
+    top = []
     for artist in results:
-        top[artist[0].replace('-', ' ').title()] = (listen_time.ListenTime(artist[1]).to_hour_and_seconds(), artist[0])
+        artist_name: str = artist[0].replace('-', ' ').title()
+        artist_id: str = artist[1]
+        time: tuple[int, float] = listen_time.ListenTime(artist[2]).to_hour_and_seconds()
+
+        top.append((artist_name, artist_id, time))
 
     return top
 
@@ -87,9 +95,14 @@ def get_top_albums(user_id : int, range : date_range.DateRange | None = None, to
         results = results[:top]
 
     # Format results
-    top = collections.OrderedDict()
+    top = []
     for album in results:
-        top[album[1]] = (listen_time.ListenTime(album[2]).to_hour_and_seconds(), album[0].replace('-', ' ').title(), album[0])
+        artist_name: str = album[0].replace('-', ' ').title()
+        artist_id: int = album[1]
+        album_name: str = album[2]
+        time: tuple[int, float] = listen_time.ListenTime(album[3]).to_hour_and_seconds()
+
+        top.append((artist_name, artist_id, album_name, time))
 
     return top
 
@@ -196,7 +209,7 @@ def get_song_count(user_id : int, range : date_range.DateRange | None = None) ->
 
 
 
-def get_artist_top_albums(user_id : int, artist : str, range : date_range.DateRange | None = None) -> dict:
+def get_artist_top_albums(user_id : int, artist : int, range : date_range.DateRange | None = None) -> dict:
     dated = False
     args = [user_id, artist]
     if range:
@@ -217,7 +230,7 @@ def get_artist_top_albums(user_id : int, artist : str, range : date_range.DateRa
     return top
 
 
-def get_artist_top_songs(user_id : int, artist : str, range : date_range.DateRange | None = None) -> dict:
+def get_artist_top_songs(user_id : int, artist : int, range : date_range.DateRange | None = None) -> dict:
     dated = False
     args = [user_id, artist]
     if range:
@@ -238,7 +251,7 @@ def get_artist_top_songs(user_id : int, artist : str, range : date_range.DateRan
     return top
 
 
-def get_artist_total(user_id : int, artist : str, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
+def get_artist_total(user_id : int, artist : int, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
     dated = False
     args = [user_id, artist]
     if range:
@@ -253,7 +266,14 @@ def get_artist_total(user_id : int, artist : str, range : date_range.DateRange |
 
     if results[0][0]:
         return listen_time.ListenTime(results[0][0])
-    else:
-        return None
+    return None
 
+def get_artist_name(artist : int) -> str | None:
+    with Opener() as (con, cur):
+        cur.execute(QUERIES["get_artist_name"], [artist,])
 
+        results = cur.fetchall()
+
+    if results:
+        return results[0][0].replace('-', ' ').title()
+    return None

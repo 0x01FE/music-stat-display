@@ -10,7 +10,7 @@ INNER JOIN artists ON songs.artist=artists.id
 INNER JOIN albums on songs.album=albums.id
 WHERE
 	"listen-events".user = ?
-	AND artists.name = ?
+	AND artists.id = ?
 GROUP BY
 	album_name
 ORDER BY
@@ -28,7 +28,7 @@ INNER JOIN artists ON songs.artist=artists.id
 INNER JOIN albums on songs.album=albums.id
 WHERE
 	"listen-events".user = ?
-	AND artists.name = ?
+	AND artists.id = ?
     AND DATE("listen-events".date) BETWEEN ? AND ?
 GROUP BY
 	album_name

@@ -197,17 +197,18 @@ def artists_overview(user: int):
 
     top_artists = db.get_top_artists(user)
 
-    return flask.render_template('artists_overview.html', data=top_artists)
+    return flask.render_template('artists_overview.html', top_artists=top_artists)
 
 @app.route('/<int:user>/artists/<artist>/')
-def artist_overview(user: int, artist : str):
-    artist = artist.lower()
+def artist_overview(user: int, artist : int):
 
     total_time = db.get_artist_total(user, artist).to_hour_and_seconds()
     top_albums = db.get_artist_top_albums(user, artist)
     top_songs = db.get_artist_top_songs(user, artist)
 
-    return flask.render_template('artist.html', artist_name=artist.replace('-', ' ').title(), artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
+    artist_name = db.get_artist_name(artist)
+
+    return flask.render_template('artist.html', artist_name=artist_name, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
 @app.route('/<int:user>/albums/')
 def albums_overview(user : int):
@@ -250,8 +251,7 @@ def month_overview(user : int, year : int, month : int):
 
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/artists/<artist>/')
-def artist_month_overview(user : int, year : int, month : int, artist : str):
-    artist = artist.lower()
+def artist_month_overview(user : int, year : int, month : int, artist : int):
 
     period = date_range.DateRange()
 
@@ -262,7 +262,9 @@ def artist_month_overview(user : int, year : int, month : int, artist : str):
     top_albums = db.get_artist_top_albums(user, artist, period)
     top_songs = db.get_artist_top_songs(user, artist, period)
 
-    return flask.render_template('artist_month_overview.html', artist_name=artist.replace('-', ' ').title(), month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
+    artist_name = db.get_artist_name(artist)
+
+    return flask.render_template('artist_month_overview.html', artist_name=artist_name, month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/artists/')
 def artists_month_overview(user : int, year : int, month : int):
@@ -306,7 +308,7 @@ def songs_month_overview(user : int, year : int, month : int):
 def root():
     return 'home'
 
+app.run()
 
-
-if __name__ == '__main__':
-    waitress.serve(app, host='0.0.0.0', port=802)
+# if __name__ == '__main__':
+#     waitress.serve(app, host='0.0.0.0', port=802)
