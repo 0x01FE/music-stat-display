@@ -16,6 +16,7 @@ import listen_time
 
 matplotlib.use("agg")
 matplotlib.font_manager.fontManager.addfont("./static/CyberpunkWaifus.ttf")
+matplotlib.pyplot.rcParams["figure.figsize"] = (12, 7)
 
 app = flask.Flask(__name__, static_url_path='', static_folder='static')
 
@@ -308,5 +309,7 @@ def songs_month_overview(user : int, year : int, month : int):
 def root():
     return 'home'
 
-if __name__ == '__main__':
-    waitress.serve(app, host='0.0.0.0', port=802)
+app.run()
+
+# if __name__ == '__main__':
+#     waitress.serve(app, host='0.0.0.0', port=802)
