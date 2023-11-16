@@ -2,6 +2,7 @@ import dateutil.relativedelta
 import datetime
 import configparser
 import calendar
+import os
 
 import flask
 import flask_wtf.csrf
@@ -309,7 +310,8 @@ def songs_month_overview(user : int, year : int, month : int):
 def root():
     return 'home'
 
-app.run()
-
-# if __name__ == '__main__':
-#     waitress.serve(app, host='0.0.0.0', port=802)
+if __name__ == '__main__':
+    if os.environ['env'] == 'DEV':
+        app.run()
+    else:
+        waitress.serve(app, host='0.0.0.0', port=802)
