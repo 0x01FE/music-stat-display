@@ -9,8 +9,8 @@
         <a href=".."><u><< back</u></a>
         <div class="TopTen">
             <header><b><u>Top Artists</u></b></header>
-            {% for artist in data %}
-              <p>{{ loop.index }}. <a href="./{{ data[artist][1] }}">{{ artist }}</a> : {{ data[artist][0][0] }} hours {{ data[artist][0][1] }} minutes</p>
+            {% for artist in top_artists %}
+                <p>{{ loop.index }}. <a href="./{{ artist[1] }}">{{ artist[0] }}</a> : {{ artist[2][0] }} hours {{ artist[2][1] }} minutes</p>
             {% endfor %}
         </div>
     </body>

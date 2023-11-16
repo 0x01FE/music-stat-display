@@ -1,6 +1,8 @@
 import datetime
 import calendar
 
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
 class DateRange:
 
     start : datetime.datetime
@@ -11,13 +13,13 @@ class DateRange:
         self.end = end
 
     def to_str(self) -> tuple[str, str]:
-        return (self.start.strftime("%Y-%m-%d"), self.end.strftime("%Y-%m-%d"))
+        return (self.start.strftime(DATE_FORMAT), self.end.strftime(DATE_FORMAT))
 
     def get_range(self, year : int, month : int) -> bool:
 
         today = datetime.datetime.today()
 
-        if month > today.month or month < 1 or year > today.year or year < 2023:
+        if month < 1 or year > today.year:
             return False
 
 

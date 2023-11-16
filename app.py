@@ -1,27 +1,30 @@
-from flask import Flask, render_template
-import matplotlib
-import matplotlib.pyplot as plt
-from dateutil.relativedelta import relativedelta
-from flask_wtf.csrf import CSRFProtect
-from waitress import serve
-
-from datetime import datetime
-from configparser import ConfigParser
+import dateutil.relativedelta
+import datetime
+import configparser
 import calendar
+import os
+
+import flask
+import flask_wtf.csrf
+import waitress
+import matplotlib
+import matplotlib.pyplot
 
 import db
 import date_range
+import listen_time
 
 
 matplotlib.use("agg")
 matplotlib.font_manager.fontManager.addfont("./static/CyberpunkWaifus.ttf")
+matplotlib.pyplot.rcParams["figure.figsize"] = (12, 7)
 
-app = Flask(__name__, static_url_path='', static_folder='static')
+app = flask.Flask(__name__, static_url_path='', static_folder='static')
 
-csrf = CSRFProtect()
+csrf = flask_wtf.csrf.CSRFProtect()
 csrf.init_app(app)
 
-config = ConfigParser()
+config = configparser.ConfigParser()
 config.read("config.ini")
 
 templates_path = config['PATHES']['templates']
@@ -71,13 +74,13 @@ Returns path to graph
 def generate_overall_graph(user_id : int, period : str) -> str:
     # Analyze the past 12 months, including this one so far.
     if period == 'month':
-        now = datetime.now()
+        now = datetime.datetime.now()
 
         totals = []
         dates = []
         for i in range(1, 13):
-            start = now - relativedelta(months=i) # Why does normal timedelta not support months?
-            end = now - relativedelta(months=i-1)
+            start = now - dateutil.relativedelta.relativedelta(months=i) # Why does normal timedelta not support months?
+            end = now - dateutil.relativedelta.relativedelta(months=i-1)
             time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
             if not time:
@@ -89,7 +92,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         totals = list(reversed(totals))
         dates = list(reversed(dates))
 
-        fig, ax = plt.subplots(facecolor="xkcd:black")
+        fig, ax = matplotlib.pyplot.subplots(facecolor="xkcd:black")
         line = ax.plot(dates, totals)
 
         color_graph("Monthly Summary", ax, line)
@@ -101,18 +104,18 @@ def generate_overall_graph(user_id : int, period : str) -> str:
 
     # Graph of the past eight weeks
     elif period == 'week':
-        now = datetime.now()
+        now = datetime.datetime.now()
 
         totals = []
         dates = []
 
         for i in range(1, 9):
-            start = now - relativedelta(weeks=i) # Why does normal timedelta not support months?
-            end = now - relativedelta(weeks=i-1)
+            start = now - dateutil.relativedelta.relativedelta(weeks=i)
+            end = now - dateutil.relativedelta.relativedelta(weeks=i-1)
             time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
             if not time:
-                break
+                time = listen_time.ListenTime(0)
 
             totals.append(time.to_hours())
             dates.append(start.strftime("%Y-%m-%d"))
@@ -120,7 +123,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         totals = list(reversed(totals))
         dates = list(reversed(dates))
 
-        fig, ax = plt.subplots(facecolor="xkcd:black")
+        fig, ax = matplotlib.pyplot.subplots(facecolor="xkcd:black")
         line = ax.plot(dates, totals)
 
         color_graph("Weekly Summary", ax, line)
@@ -132,18 +135,18 @@ def generate_overall_graph(user_id : int, period : str) -> str:
 
     # Graph of the past 14 days
     elif period == 'day':
-        now = datetime.strptime("2023-09-16", "%Y-%m-%d")
+        now = datetime.datetime.strptime("2023-09-16", "%Y-%m-%d")
 
         totals = []
         dates = []
 
         for i in range(1, 9):
-            start = now - relativedelta(days=i) # Why does normal timedelta not support months?
-            end = now - relativedelta(days=i-1)
+            start = now - dateutil.relativedelta.relativedelta(days=i)
+            end = now - dateutil.relativedelta.relativedelta(days=i-1)
             time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
             if not time:
-                time = 0
+                time = listen_time.ListenTime(0)
 
             totals.append(time.to_hours())
             dates.append(start.strftime("%m-%d"))
@@ -151,7 +154,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         totals = list(reversed(totals))
         dates = list(reversed(dates))
 
-        fig, ax = plt.subplots(facecolor="xkcd:black")
+        fig, ax = matplotlib.pyplot.subplots(facecolor="xkcd:black")
         line = ax.plot(dates, totals)
 
         color_graph("Daily Summary", ax, line)
@@ -164,7 +167,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
     else:
         return 'bad period'
 
-    plt.close()
+    matplotlib.pyplot.close()
     return f'static/{period}.png'
 
 
@@ -176,7 +179,7 @@ def overview(user : int):
         generate_overall_graph(user, period)
 
 
-    today = datetime.today()
+    today = datetime.datetime.today()
 
     top_artists = db.get_top_artists(user, top=5)
     top_albums = db.get_top_albums(user, top=5)
@@ -189,36 +192,37 @@ def overview(user : int):
     song_count = db.get_song_count(user)
 
 
-    return render_template('overall.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
+    return flask.render_template('overall.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
 
 @app.route('/<int:user>/artists/')
 def artists_overview(user: int):
 
     top_artists = db.get_top_artists(user)
 
-    return render_template('artists_overview.html', data=top_artists)
+    return flask.render_template('artists_overview.html', top_artists=top_artists)
 
 @app.route('/<int:user>/artists/<artist>/')
-def artist_overview(user: int, artist : str):
-    artist = artist.lower()
+def artist_overview(user: int, artist : int):
 
     total_time = db.get_artist_total(user, artist).to_hour_and_seconds()
     top_albums = db.get_artist_top_albums(user, artist)
     top_songs = db.get_artist_top_songs(user, artist)
 
-    return render_template('artist.html', artist_name=artist.replace('-', ' ').title(), artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
+    artist_name = db.get_artist_name(artist)
+
+    return flask.render_template('artist.html', artist_name=artist_name, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
 @app.route('/<int:user>/albums/')
 def albums_overview(user : int):
     top_albums = db.get_top_albums(user)
 
-    return render_template('albums_overview.html', top_albums=top_albums)
+    return flask.render_template('albums_overview.html', top_albums=top_albums)
 
 @app.route('/<int:user>/songs/')
 def songs_overview(user : int):
     top_songs = db.get_top_songs(user)
 
-    return render_template('songs_overview.html', top_songs=top_songs)
+    return flask.render_template('songs_overview.html', top_songs=top_songs)
 
 
 
@@ -245,12 +249,11 @@ def month_overview(user : int, year : int, month : int):
 
     links = (f"../../{year}/{month - 1}", f"../../{year}/{month + 1}")
 
-    return render_template('month_overview.html', month_name=calendar.month_name[month], year=year, top_artists=top_artists, top_albums=top_albums, top_songs=top_songs, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
+    return flask.render_template('month_overview.html', month_name=calendar.month_name[month], year=year, top_artists=top_artists, top_albums=top_albums, top_songs=top_songs, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
 
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/artists/<artist>/')
-def artist_month_overview(user : int, year : int, month : int, artist : str):
-    artist = artist.lower()
+def artist_month_overview(user : int, year : int, month : int, artist : int):
 
     period = date_range.DateRange()
 
@@ -261,7 +264,9 @@ def artist_month_overview(user : int, year : int, month : int, artist : str):
     top_albums = db.get_artist_top_albums(user, artist, period)
     top_songs = db.get_artist_top_songs(user, artist, period)
 
-    return render_template('artist_month_overview.html', artist_name=artist.replace('-', ' ').title(), month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
+    artist_name = db.get_artist_name(artist)
+
+    return flask.render_template('artist_month_overview.html', artist_name=artist_name, month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/artists/')
 def artists_month_overview(user : int, year : int, month : int):
@@ -273,7 +278,7 @@ def artists_month_overview(user : int, year : int, month : int):
 
     top_artists = db.get_top_artists(user, period)
 
-    return render_template('artists_month_overview.html', top_artists=top_artists, month_name=calendar.month_name[month], year=year)
+    return flask.render_template('artists_month_overview.html', top_artists=top_artists, month_name=calendar.month_name[month], year=year)
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/albums/')
 def albums_month_overview(user : int, year : int, month : int):
@@ -285,7 +290,7 @@ def albums_month_overview(user : int, year : int, month : int):
 
     top_albums = db.get_top_albums(user, period)
 
-    return render_template('albums_month_overview.html', top_albums=top_albums, month_name=calendar.month_name[month], year=year)
+    return flask.render_template('albums_month_overview.html', top_albums=top_albums, month_name=calendar.month_name[month], year=year)
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/songs/')
 def songs_month_overview(user : int, year : int, month : int):
@@ -297,7 +302,7 @@ def songs_month_overview(user : int, year : int, month : int):
 
     top_songs = db.get_top_songs(user, period)
 
-    return render_template('songs_month_overview.html', top_songs=top_songs, month_name=calendar.month_name[month], year=year)
+    return flask.render_template('songs_month_overview.html', top_songs=top_songs, month_name=calendar.month_name[month], year=year)
 
 
 
@@ -305,7 +310,8 @@ def songs_month_overview(user : int, year : int, month : int):
 def root():
     return 'home'
 
-
-
 if __name__ == '__main__':
-    serve(app, host='0.0.0.0', port=802)
+    if os.environ['env'] == 'DEV':
+        app.run()
+    else:
+        waitress.serve(app, host='0.0.0.0', port=802)
