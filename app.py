@@ -110,7 +110,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         dates = []
 
         for i in range(1, 9):
-            start = now - dateutil.relativedelta.relativedelta(weeks=i) # Why does normal timedelta not support months?
+            start = now - dateutil.relativedelta.relativedelta(weeks=i)
             end = now - dateutil.relativedelta.relativedelta(weeks=i-1)
             time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
@@ -141,7 +141,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
         dates = []
 
         for i in range(1, 9):
-            start = now - dateutil.relativedelta.relativedelta(days=i) # Why does normal timedelta not support months?
+            start = now - dateutil.relativedelta.relativedelta(days=i)
             end = now - dateutil.relativedelta.relativedelta(days=i-1)
             time = db.get_total_time(user_id, date_range.DateRange(start, end))
 
