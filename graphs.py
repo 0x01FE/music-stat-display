@@ -133,3 +133,32 @@ def generate_monthly_graph(user_id : int) -> str:
         ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
 
     fig.savefig("static/month.png")
+
+
+def generate_artist_graph(user_id : int, artist_id : int, ranges : list[date_range.DateRange]) -> str:
+
+    times: list[listen_time.ListenTime] = []
+    dates: list[str] = []
+    for range in ranges:
+        time = db.get_artist_total(user_id, artist_id, range)
+
+        if not time:
+            time = listen_time.ListenTime(0)
+
+        times.append(time.to_hours())
+        dates.append(range.start.strftime("%Y-%m-%d"))
+
+    artist_name = db.get_artist_name(artist_id)
+
+    times = list(reversed(times))
+    dates = list(reversed(dates))
+
+    fig, ax = matplotlib.pyplot.subplots(facecolor="xkcd:black")
+    line = ax.plot(dates, times)
+
+    color_graph(f"{artist_name} Monthly Summary", ax, line)
+
+    for i, txt in enumerate(times):
+        ax.annotate(txt, (dates[i], times[i]), color="xkcd:powder blue")
+
+    fig.savefig(f"static/{artist_id}-month.png")

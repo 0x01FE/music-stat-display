@@ -250,7 +250,17 @@ def get_artist_top_songs(user_id : int, artist : int, range : date_range.DateRan
 
     return top
 
+'''
+Get the amount of time a user has listened to an artist for a time range.
 
+Parameters:
+    user_id : int (user id)
+    artist : int (artist database id)
+    range : date_range.DateRange | None (if desired, the range to query)
+
+Returns:
+    ListenTime | None
+'''
 def get_artist_total(user_id : int, artist : int, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
     dated = False
     args = [user_id, artist]
