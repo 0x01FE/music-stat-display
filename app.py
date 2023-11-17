@@ -135,7 +135,7 @@ def generate_overall_graph(user_id : int, period : str) -> str:
 
     # Graph of the past 14 days
     elif period == 'day':
-        now = datetime.datetime.strptime("2023-09-16", "%Y-%m-%d")
+        now = datetime.datetime.now()
 
         totals = []
         dates = []
@@ -311,7 +311,8 @@ def root():
     return 'home'
 
 if __name__ == '__main__':
-    if os.environ['env'] == 'DEV':
-        app.run()
+    if 'env' in os.environ:
+        if os.environ['env'] == 'DEV':
+            app.run()
     else:
         waitress.serve(app, host='0.0.0.0', port=802)
