@@ -22,6 +22,7 @@ config.read("config.ini")
 
 templates_path = config['PATHES']['templates']
 DATABASE = config['PATHES']['DATABASE']
+PORT = config['NETWORK']['PORT']
 
 
 @app.route('/<int:user>/')
@@ -166,4 +167,4 @@ if __name__ == '__main__':
     if os.environ['env'] == 'DEV':
         app.run()
     else:
-        waitress.serve(app, host='0.0.0.0', port=802)
+        waitress.serve(app, host='0.0.0.0', port=PORT)
