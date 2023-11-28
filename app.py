@@ -63,7 +63,11 @@ def artist_overview(user: int, artist : int):
 
     artist_name = db.get_artist_name(artist)
 
-    return flask.render_template('artist.html', artist_name=artist_name, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
+    graphs.generate_artist_graph(user, artist, date_range.daily_ranges(30), 'd')
+    graphs.generate_artist_graph(user, artist, date_range.weekly_ranges(4), 'w')
+    graphs.generate_artist_graph(user, artist, date_range.monthly_ranges(12), 'm')
+
+    return flask.render_template('artist.html', artist_name=artist_name, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs, artist_id=artist)
 
 @app.route('/<int:user>/albums/')
 def albums_overview(user : int):
@@ -157,7 +161,12 @@ def songs_month_overview(user : int, year : int, month : int):
 
     return flask.render_template('songs_month_overview.html', top_songs=top_songs, month_name=calendar.month_name[month], year=year)
 
+@app.route('/<int:user>/biggraph/<int:artist>/')
+def big_artist_graph(user : int, artist : int):
 
+    graphs.generate_artist_graph(user, artist, date_range.daily_ranges(365), 'yd')
+
+    return flask.send_file(f"static/{artist}-yd.png")
 
 @app.route('/')
 def root():

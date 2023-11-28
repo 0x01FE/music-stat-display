@@ -1,3 +1,4 @@
+import typing
 import datetime
 import dateutil.relativedelta
 
@@ -135,7 +136,21 @@ def generate_monthly_graph(user_id : int) -> str:
     fig.savefig("static/month.png")
 
 
-def generate_artist_graph(user_id : int, artist_id : int, ranges : list[date_range.DateRange]) -> str:
+def generate_artist_graph(user_id : int, artist_id : int, ranges : list[date_range.DateRange], period : typing.Literal['d', 'w', 'm', 'yd']) -> str:
+
+    match period:
+        case "d":
+            file_name = "day"
+            adj = "Daily"
+        case "w":
+            file_name = "week"
+            adj = "Weekly"
+        case "m":
+            file_name = "month"
+            adj = "Monthly"
+        case "yd":
+            file_name = "yd"
+            adj = "Daily (For a Year)"
 
     times: list[listen_time.ListenTime] = []
     dates: list[str] = []
@@ -156,9 +171,15 @@ def generate_artist_graph(user_id : int, artist_id : int, ranges : list[date_ran
     fig, ax = matplotlib.pyplot.subplots(facecolor="xkcd:black")
     line = ax.plot(dates, times)
 
-    color_graph(f"{artist_name} Monthly Summary", ax, line)
+    color_graph(f"{artist_name} {adj} Summary", ax, line)
 
     for i, txt in enumerate(times):
         ax.annotate(txt, (dates[i], times[i]), color="xkcd:powder blue")
 
-    fig.savefig(f"static/{artist_id}-month.png")
+    if period == "yd":
+        print('?')
+        fig.set_size_inches(72, 7)
+    else:
+        fig.set_size_inches(12, 7)
+
+    fig.savefig(f"static/{artist_id}-{file_name}.png")

@@ -50,3 +50,28 @@ def monthly_ranges(months : int) -> list[DateRange]:
 
 
 
+def weekly_ranges(weeks : int) -> list[DateRange]:
+    ranges: list[DateRange] = []
+
+    today = datetime.datetime.now()
+
+    for week in range(1, weeks):
+        start = today - dateutil.relativedelta.relativedelta(weeks=week)
+        end = today - dateutil.relativedelta.relativedelta(weeks=week - 1)
+        ranges.append(DateRange(start, end))
+
+    return ranges
+
+
+
+def daily_ranges(days : int) -> list[DateRange]:
+    ranges: list[DateRange] = []
+
+    today = datetime.datetime.now()
+
+    for day in range(1, days):
+        start = today - dateutil.relativedelta.relativedelta(days=day)
+        end = today - dateutil.relativedelta.relativedelta(days=day - 1)
+        ranges.append(DateRange(start, end))
+
+    return ranges
