@@ -200,7 +200,10 @@ def root():
     return 'home'
 
 if __name__ == '__main__':
-    if os.environ['env'] == 'DEV':
-        app.run()
+    if 'env' in os.environ:
+        if os.environ['env'] == 'DEV':
+            app.run()
+        else:
+            waitress.serve(app, host='0.0.0.0', port=PORT)
     else:
         waitress.serve(app, host='0.0.0.0', port=PORT)
