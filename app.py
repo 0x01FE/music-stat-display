@@ -191,6 +191,10 @@ def wrapped(user : int, year : int):
 
     return flask.render_template("wrapped.html", year=year, top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count, top_skipped_songs=top_skipped_songs)
 
+@app.route('/db/')
+def database():
+    return flask.send_file(DATABASE)
+
 @app.route('/')
 def root():
     return 'home'
