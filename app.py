@@ -168,6 +168,27 @@ def big_artist_graph(user : int, artist : int):
 
     return flask.send_file(f"static/{artist}-yd.png")
 
+@app.route('/<int:user>/wrapped/<int:year>/')
+def wrapped(user : int, year : int):
+
+    start = datetime.datetime.strptime(f"11-30-{year}", "%m-%d-%Y")
+    end = start - dateutil.relativedelta.relativedelta(year=1)
+
+    period = date_range.DateRange(start, end)
+
+    top_artists = db.get_top_artists(user, period, top=5)
+    top_albums = db.get_top_albums(user, period, top=5)
+    top_songs = db.get_top_songs(user, period, top=5)
+
+    total_time = db.get_total_time(user, period)
+    total_time = total_time.to_hour_and_seconds()
+
+    artist_count = db.get_artist_count(user, period)
+    album_count = db.get_album_count(user, period)
+    song_count = db.get_song_count(user, period)
+
+    return flask.render_template("wrapped.html", year=year, top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
+
 @app.route('/')
 def root():
     return 'home'
