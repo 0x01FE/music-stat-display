@@ -17,19 +17,28 @@
             <div class="SummaryBlock">
                 <header><a href="./artists/"><u>Top Artists</u></a></header>
                 {% for artist in top_artists %}
-                    <p>{{ loop.index }}. <a href="./artists/{{ artist[1] }}">{{ artist[0] }}</a> : {{ artist[2][0] }} hours {{ artist[2][1] }} minutes</p>
+                    <p>{{ loop.index }}. <a href="../artists/{{ artist[1] }}">{{ artist[0] }}</a> : {{ artist[2][0] }} hours {{ artist[2][1] }} minutes</p>
                 {% endfor %}
             </div>
             <div class="SummaryBlock">
                 <header><a href="./albums/"><u>Top Albums</u></a></header>
                 {% for album in top_albums %}
-                    <p>{{ loop.index }}. {{ album[2] }} by <a href="./artists/{{ album[1] }}">{{ album[0] }}</a>: {{ album[3][0] }} hours {{ album[3][1] }} minutes</p>
+                    <p>{{ loop.index }}. {{ album[2] }} by <a href="../artists/{{ album[1] }}">{{ album[0] }}</a>: {{ album[3][0] }} hours {{ album[3][1] }} minutes</p>
                 {% endfor %}
             </div>
             <div class="SummaryBlock">
                 <header><a href="./songs/"><u>Top Songs</u></a></header>
                 {% for song in top_songs %}
-                    <p>{{ loop.index }}. {{ song[2] }} <u>by</u> <a href="./artists/{{ song[1] }}">{{ song[0] }}</a>: {{ song[3][0] }} hours {{ song[3][1] }} minutes</p>
+                    <p>{{ loop.index }}. {{ song[2] }} <u>by</u> <a href="../artists/{{ song[1] }}">{{ song[0] }}</a>: {{ song[3][0] }} hours {{ song[3][1] }} minutes</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="Summary">
+            <div class="SummaryBlock">
+                <header><u>Your Favorite Least Favorite Songs</u></header>
+                {% for skip_song in top_skipped_songs %}
+                    <p>{{ loop.index }}. {{ skip_song[2] }} <u>by</u> <a href="../artists/{{ skip_song[0] }}">{{ skip_song[1] }}</a>: {{ skip_song[3] }} Skips</p>
                 {% endfor %}
             </div>
         </div>

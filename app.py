@@ -171,14 +171,14 @@ def big_artist_graph(user : int, artist : int):
 @app.route('/<int:user>/wrapped/<int:year>/')
 def wrapped(user : int, year : int):
 
-    start = datetime.datetime.strptime(f"11-30-{year}", "%m-%d-%Y")
-    end = start - dateutil.relativedelta.relativedelta(year=1)
+    end = datetime.datetime.strptime(f"11-27-{year}", "%m-%d-%Y")
+    start = end - dateutil.relativedelta.relativedelta(years=1)
 
     period = date_range.DateRange(start, end)
 
-    top_artists = db.get_top_artists(user, period, top=5)
-    top_albums = db.get_top_albums(user, period, top=5)
-    top_songs = db.get_top_songs(user, period, top=5)
+    top_artists = db.get_top_artists(user, period, top=10)
+    top_albums = db.get_top_albums(user, period, top=10)
+    top_songs = db.get_top_songs(user, period, top=10)
 
     total_time = db.get_total_time(user, period)
     total_time = total_time.to_hour_and_seconds()
@@ -187,7 +187,9 @@ def wrapped(user : int, year : int):
     album_count = db.get_album_count(user, period)
     song_count = db.get_song_count(user, period)
 
-    return flask.render_template("wrapped.html", year=year, top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
+    top_skipped_songs = db.get_top_skipped_songs(user, period, top=10)
+
+    return flask.render_template("wrapped.html", year=year, top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count, top_skipped_songs=top_skipped_songs)
 
 @app.route('/')
 def root():

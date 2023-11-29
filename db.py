@@ -108,7 +108,7 @@ def get_top_albums(user_id : int, range : date_range.DateRange | None = None, to
 
 
 
-def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> dict:
+def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top : int | None = None) -> dict:
     dated = False
     args = [user_id]
     if range:
@@ -287,3 +287,33 @@ def get_artist_name(artist : int) -> str | None:
     if results:
         return results[0][0].replace('-', ' ').title()
     return None
+
+
+def get_top_skipped_songs(user_id : int, range : date_range.DateRange | None = None, top : int | None = None) -> dict:
+    dated = False
+    args = [user_id]
+    if range:
+        dated = True
+        for date in range.to_str():
+            args.append(date)
+
+    with Opener() as (con, cur):
+        cur.execute(QUERIES["top_skipped_songs"][dated], args)
+
+        results = cur.fetchall()
+
+    if top:
+        results = results[:top]
+
+    # Format results
+    top: list = []
+    for song in results:
+        artist_name: str = song[1].replace('-', ' ').title()
+        artist_id: int = song[0]
+        song_name: str = song[2]
+        skips: int = song[3]
+
+        top.append((artist_id, artist_name, song_name, skips))
+
+    return top
+
