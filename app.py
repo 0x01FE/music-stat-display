@@ -187,9 +187,12 @@ def wrapped(user : int, year : int):
     album_count = db.get_album_count(user, period)
     song_count = db.get_song_count(user, period)
 
+    top_played_artists = db.get_top_played_artists(user, period, top=10)
+    top_played_songs = db.get_top_played_songs(user, period, top=10)
+
     top_skipped_songs = db.get_top_skipped_songs(user, period, top=10)
 
-    return flask.render_template("wrapped.html", year=year, top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count, top_skipped_songs=top_skipped_songs)
+    return flask.render_template("wrapped.html", year=year, top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count, top_skipped_songs=top_skipped_songs, top_played_artists=top_played_artists, top_played_songs=top_played_songs)
 
 @app.route('/db/')
 def database():
