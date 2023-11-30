@@ -171,7 +171,7 @@ def big_artist_graph(user : int, artist : int):
 @app.route('/<int:user>/wrapped/<int:year>/')
 def wrapped(user : int, year : int):
 
-    end = datetime.datetime.strptime(f"11-27-{year}", "%m-%d-%Y")
+    end = datetime.datetime.strptime(f"12-31-{year}", "%m-%d-%Y")
     start = end - dateutil.relativedelta.relativedelta(years=1)
 
     period = date_range.DateRange(start, end)
