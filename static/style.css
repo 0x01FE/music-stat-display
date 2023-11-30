@@ -45,6 +45,16 @@ header {
     display:inline-block;
 }
 
+.BigTitleBlock {
+    font-weight: bold;
+    font-size: 30px;
+    padding: 15px;
+    border-style: dashed;
+    border-color: white;
+    margin: 5px;
+    text-align: center;
+}
+
 .Graphs {
     text-align: center;
     padding: 5px;

@@ -7,17 +7,10 @@ import os
 import flask
 import flask_wtf.csrf
 import waitress
-import matplotlib
-import matplotlib.pyplot
 
 import db
 import date_range
-import listen_time
-
-
-matplotlib.use("agg")
-matplotlib.font_manager.fontManager.addfont("./static/CyberpunkWaifus.ttf")
-matplotlib.pyplot.rcParams["figure.figsize"] = (12, 7)
+import graphs
 
 app = flask.Flask(__name__, static_url_path='', static_folder='static')
 
@@ -29,155 +22,15 @@ config.read("config.ini")
 
 templates_path = config['PATHES']['templates']
 DATABASE = config['PATHES']['DATABASE']
-
-
-
-
-
-def color_graph(title : str, ax : matplotlib.axes.Axes, plot : matplotlib.lines.Line2D) -> matplotlib.axes.Axes:
-    # Graph Background
-    ax.set_facecolor("#00031c")
-
-    # Graph Border
-    for spine in ax.spines.values():
-        spine.set_color('xkcd:pink')
-
-    # Data Line Color
-    for line in plot:
-        line.set_color("xkcd:hot pink")
-
-    # Axis Label Colors
-    ax.set_xlabel('Date', color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=15)
-    ax.set_ylabel("Time (Hours)", color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=15)
-
-    # Tick colors
-    ax.tick_params(axis="x", colors="xkcd:powder blue")
-    ax.tick_params(axis="y", colors="xkcd:powder blue")
-
-    # Title Color
-    ax.set_title(title, color="xkcd:hot pink", font="CyberpunkWaifus", fontsize=20)
-
-    # Grid
-    ax.grid(color="xkcd:dark purple")
-
-    return ax
-
-'''
-takes in a period of time to use as the X-axis
-acceptable periods :
-    - month
-    - week
-    - day
-
-Returns path to graph
-'''
-def generate_overall_graph(user_id : int, period : str) -> str:
-    # Analyze the past 12 months, including this one so far.
-    if period == 'month':
-        now = datetime.datetime.now()
-
-        totals = []
-        dates = []
-        for i in range(1, 13):
-            start = now - dateutil.relativedelta.relativedelta(months=i) # Why does normal timedelta not support months?
-            end = now - dateutil.relativedelta.relativedelta(months=i-1)
-            time = db.get_total_time(user_id, date_range.DateRange(start, end))
-
-            if not time:
-                break
-
-            totals.append(time.to_hours())
-            dates.append(start.strftime("%Y-%m-%d"))
-
-        totals = list(reversed(totals))
-        dates = list(reversed(dates))
-
-        fig, ax = matplotlib.pyplot.subplots(facecolor="xkcd:black")
-        line = ax.plot(dates, totals)
-
-        color_graph("Monthly Summary", ax, line)
-
-        for i, txt in enumerate(totals):
-            ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
-
-        fig.savefig("static/month.png")
-
-    # Graph of the past eight weeks
-    elif period == 'week':
-        now = datetime.datetime.now()
-
-        totals = []
-        dates = []
-
-        for i in range(1, 9):
-            start = now - dateutil.relativedelta.relativedelta(weeks=i)
-            end = now - dateutil.relativedelta.relativedelta(weeks=i-1)
-            time = db.get_total_time(user_id, date_range.DateRange(start, end))
-
-            if not time:
-                time = listen_time.ListenTime(0)
-
-            totals.append(time.to_hours())
-            dates.append(start.strftime("%Y-%m-%d"))
-
-        totals = list(reversed(totals))
-        dates = list(reversed(dates))
-
-        fig, ax = matplotlib.pyplot.subplots(facecolor="xkcd:black")
-        line = ax.plot(dates, totals)
-
-        color_graph("Weekly Summary", ax, line)
-
-        for i, txt in enumerate(totals):
-            ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
-
-        fig.savefig("static/week.png", bbox_inches='tight')
-
-    # Graph of the past 14 days
-    elif period == 'day':
-        now = datetime.datetime.now()
-
-        totals = []
-        dates = []
-
-        for i in range(1, 9):
-            start = now - dateutil.relativedelta.relativedelta(days=i)
-            end = now - dateutil.relativedelta.relativedelta(days=i-1)
-            time = db.get_total_time(user_id, date_range.DateRange(start, end))
-
-            if not time:
-                time = listen_time.ListenTime(0)
-
-            totals.append(time.to_hours())
-            dates.append(start.strftime("%m-%d"))
-
-        totals = list(reversed(totals))
-        dates = list(reversed(dates))
-
-        fig, ax = matplotlib.pyplot.subplots(facecolor="xkcd:black")
-        line = ax.plot(dates, totals)
-
-        color_graph("Daily Summary", ax, line)
-
-        for i, txt in enumerate(totals):
-            ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
-
-        fig.savefig("static/day.png", bbox_inches='tight')
-
-    else:
-        return 'bad period'
-
-    matplotlib.pyplot.close()
-    return f'static/{period}.png'
-
+PORT = config['NETWORK']['PORT']
 
 
 @app.route('/<int:user>/')
 def overview(user : int):
 
-    for period in ['day', 'week', 'month']:
-        generate_overall_graph(user, period)
-
+    graphs.generate_daily_graph(user)
+    graphs.generate_weekly_graph(user)
+    graphs.generate_monthly_graph(user)
 
     today = datetime.datetime.today()
 
@@ -210,7 +63,11 @@ def artist_overview(user: int, artist : int):
 
     artist_name = db.get_artist_name(artist)
 
-    return flask.render_template('artist.html', artist_name=artist_name, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
+    graphs.generate_artist_graph(user, artist, date_range.daily_ranges(30), 'd')
+    graphs.generate_artist_graph(user, artist, date_range.weekly_ranges(4), 'w')
+    graphs.generate_artist_graph(user, artist, date_range.monthly_ranges(12), 'm')
+
+    return flask.render_template('artist.html', artist_name=artist_name, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs, artist_id=artist)
 
 @app.route('/<int:user>/albums/')
 def albums_overview(user : int):
@@ -304,7 +161,42 @@ def songs_month_overview(user : int, year : int, month : int):
 
     return flask.render_template('songs_month_overview.html', top_songs=top_songs, month_name=calendar.month_name[month], year=year)
 
+@app.route('/<int:user>/biggraph/<int:artist>/')
+def big_artist_graph(user : int, artist : int):
 
+    graphs.generate_artist_graph(user, artist, date_range.daily_ranges(365), 'yd')
+
+    return flask.send_file(f"static/{artist}-yd.png")
+
+@app.route('/<int:user>/wrapped/<int:year>/')
+def wrapped(user : int, year : int):
+
+    end = datetime.datetime.strptime(f"11-27-{year}", "%m-%d-%Y")
+    start = end - dateutil.relativedelta.relativedelta(years=1)
+
+    period = date_range.DateRange(start, end)
+
+    top_artists = db.get_top_artists(user, period, top=10)
+    top_albums = db.get_top_albums(user, period, top=10)
+    top_songs = db.get_top_songs(user, period, top=10)
+
+    total_time = db.get_total_time(user, period)
+    total_time = total_time.to_hour_and_seconds()
+
+    artist_count = db.get_artist_count(user, period)
+    album_count = db.get_album_count(user, period)
+    song_count = db.get_song_count(user, period)
+
+    top_played_artists = db.get_top_played_artists(user, period, top=10)
+    top_played_songs = db.get_top_played_songs(user, period, top=10)
+
+    top_skipped_songs = db.get_top_skipped_songs(user, period, top=10)
+
+    return flask.render_template("wrapped.html", year=year, top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count, top_skipped_songs=top_skipped_songs, top_played_artists=top_played_artists, top_played_songs=top_played_songs)
+
+@app.route('/db/')
+def database():
+    return flask.send_file(DATABASE)
 
 @app.route('/')
 def root():
@@ -314,5 +206,7 @@ if __name__ == '__main__':
     if 'env' in os.environ:
         if os.environ['env'] == 'DEV':
             app.run()
+        else:
+            waitress.serve(app, host='0.0.0.0', port=PORT)
     else:
-        waitress.serve(app, host='0.0.0.0', port=802)
+        waitress.serve(app, host='0.0.0.0', port=PORT)

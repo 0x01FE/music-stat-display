@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  music-stat-display:
+    image: "music-stat-display:v3"
+    container_name: "music-stat-display"
+    volumes:
+      - /path/to/database:/data
+    ports:
+      "internal_port_in_config:external_port"
+    restart: "unless-stopped"

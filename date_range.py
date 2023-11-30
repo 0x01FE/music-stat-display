@@ -1,5 +1,6 @@
 import datetime
 import calendar
+import dateutil.relativedelta
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -33,3 +34,44 @@ class DateRange:
         self.start = datetime.datetime.strptime(f"{year}-{month}", "%Y-%m")
         return True
 
+
+
+def monthly_ranges(months : int) -> list[DateRange]:
+    ranges: list[DateRange] = []
+
+    today = datetime.datetime.now()
+
+    for month in range(1, months):
+        start = today - dateutil.relativedelta.relativedelta(months=month)
+        end = today - dateutil.relativedelta.relativedelta(months=month - 1)
+        ranges.append(DateRange(start, end))
+
+    return ranges
+
+
+
+def weekly_ranges(weeks : int) -> list[DateRange]:
+    ranges: list[DateRange] = []
+
+    today = datetime.datetime.now()
+
+    for week in range(1, weeks):
+        start = today - dateutil.relativedelta.relativedelta(weeks=week)
+        end = today - dateutil.relativedelta.relativedelta(weeks=week - 1)
+        ranges.append(DateRange(start, end))
+
+    return ranges
+
+
+
+def daily_ranges(days : int) -> list[DateRange]:
+    ranges: list[DateRange] = []
+
+    today = datetime.datetime.now()
+
+    for day in range(1, days):
+        start = today - dateutil.relativedelta.relativedelta(days=day)
+        end = today - dateutil.relativedelta.relativedelta(days=day - 1)
+        ranges.append(DateRange(start, end))
+
+    return ranges

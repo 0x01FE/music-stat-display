@@ -108,7 +108,7 @@ def get_top_albums(user_id : int, range : date_range.DateRange | None = None, to
 
 
 
-def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> dict:
+def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top : int | None = None) -> dict:
     dated = False
     args = [user_id]
     if range:
@@ -250,7 +250,17 @@ def get_artist_top_songs(user_id : int, artist : int, range : date_range.DateRan
 
     return top
 
+'''
+Get the amount of time a user has listened to an artist for a time range.
 
+Parameters:
+    user_id : int (user id)
+    artist : int (artist database id)
+    range : date_range.DateRange | None (if desired, the range to query)
+
+Returns:
+    ListenTime | None
+'''
 def get_artist_total(user_id : int, artist : int, range : date_range.DateRange | None = None) -> listen_time.ListenTime | None:
     dated = False
     args = [user_id, artist]
@@ -277,3 +287,89 @@ def get_artist_name(artist : int) -> str | None:
     if results:
         return results[0][0].replace('-', ' ').title()
     return None
+
+
+def get_top_skipped_songs(user_id : int, range : date_range.DateRange | None = None, top : int | None = None) -> list:
+    dated = False
+    args = [user_id]
+    if range:
+        dated = True
+        for date in range.to_str():
+            args.append(date)
+
+    with Opener() as (con, cur):
+        cur.execute(QUERIES["top_skipped_songs"][dated], args)
+
+        results = cur.fetchall()
+
+    if top:
+        results = results[:top]
+
+    # Format results
+    top: list = []
+    for song in results:
+        artist_name: str = song[1].replace('-', ' ').title()
+        artist_id: int = song[0]
+        song_name: str = song[2]
+        skips: int = song[3]
+
+        top.append((artist_id, artist_name, song_name, skips))
+
+    return top
+
+
+def get_top_played_artists(user_id : int, range : date_range.DateRange | None = None, top : int | None = None) -> list:
+    dated = False
+    args = [user_id]
+    if range:
+        dated = True
+        for date in range.to_str():
+            args.append(date)
+
+    with Opener() as (con, cur):
+        cur.execute(QUERIES["top_played_artists"][dated], args)
+
+        results = cur.fetchall()
+
+    if top:
+        results = results[:top]
+
+    top: list = []
+    # Format Artist Name
+    for artist in results:
+        artist_name: str = artist[1].replace('-', ' ').title()
+        artist_id: int = artist[0]
+        count: int = artist[2]
+
+        top.append((artist_name, artist_id, count))
+
+    return top
+
+
+def get_top_played_songs(user_id : int, range : date_range.DateRange | None = None, top : int | None = None) -> list:
+    dated = False
+    args = [user_id]
+    if range:
+        dated = True
+        for date in range.to_str():
+            args.append(date)
+
+    with Opener() as (con, cur):
+        cur.execute(QUERIES["top_played_songs"][dated], args)
+
+        results = cur.fetchall()
+
+    if top:
+        results = results[:top]
+
+    top: list = []
+    # Format Artist Name
+    for song in results:
+        artist_name: str = song[0].replace('-', ' ').title()
+        artist_id: int = song[1]
+        song_name : str = song[2]
+        count: int = song[4]
+
+        top.append((artist_name, artist_id, song_name, count))
+
+    return top
