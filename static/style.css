@@ -45,6 +45,19 @@ header {
     display:inline-block;
 }
 
+.SettingBlock {
+    font-weight: bold;
+    font-size: 24px;
+    padding: 15px;
+    border-style: solid;
+    border-color: white;
+    margin: 5px auto;
+    /* text-align: center; */
+    /* display:inline-block; */
+    /* right: 50%; */
+    width: 25%;
+}
+
 .BigTitleBlock {
     font-weight: bold;
     font-size: 30px;
@@ -81,6 +94,26 @@ header {
     text-align: left;
     /* margin: 15px; */
 }
+
+.UserName {
+    float: right;
+    margin-top: 16px;
+    margin-right: 5px;
+}
+
+.UserPfp {
+    overflow: hidden;
+    float: right;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.UserPfp img {
+    width: auto;
+    height: 100%;
+}
+
 
 
 /* #Body div.Header2 {

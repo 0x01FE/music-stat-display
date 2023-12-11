@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <title>Settings</title>
+    </header>
+    <body>
+        {% if display_name != None %}
+            <div class="UserPfp"><a href="/settings/"><img src="{{ user_pfp_url }}"></a></div>
+            <div class="UserName"><a href="/settings/">{{ display_name }}</a></div>
+        {% endif %}
+
+        <br>
+        <br>
+
+        <div class="SettingBlock">Public Profile</div>
+        <p>If the settings are saved with this active your profile will be publicly viewable to anyone with a link to it.</p>
+        <form method="post" action="/settings/save/">
+            {{ form.hidden_tag() }}
+            {{ form.checkbox }}
+            <!-- <input type="checkbox" id="public" name="public" value="Public"><br> -->
+            <input type="submit" value="Save">
+            <!-- -->
+        </form>
+
+        <div class="SettingBlock"><a href="/logout/">Logout</a></div>
+
+    </body>
+</html>

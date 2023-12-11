@@ -15,7 +15,7 @@ config.read("config.ini")
 
 DATABASE = config['PATHES']['DATABASE']
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-SQL_DIR = "./sql/"
+SQL_DIR = "./sql/data/"
 
 QUERIES = {}
 
@@ -373,3 +373,53 @@ def get_top_played_songs(user_id : int, range : date_range.DateRange | None = No
         top.append((artist_name, artist_id, song_name, count))
 
     return top
+
+
+def add_user(display_name : str, user_spotify_id : str) -> None:
+    with open('./sql/user/add_user.sql', 'r') as f:
+        query = f.read()
+
+    with Opener() as (con, cur):
+        cur.execute(query, [display_name, user_spotify_id, 1])
+
+
+def user_exists(user_spotify_id : str) -> bool:
+    with open('./sql/user/user_exists.sql', 'r') as f:
+        query = f.read()
+
+    with Opener() as (con, cur):
+        cur.execute(query, [user_spotify_id,])
+
+        results = cur.fetchall()
+
+    return bool(results)
+
+def get_user_id(user_spotify_id : str) -> int | None:
+    with open('./sql/user/user_exists.sql', 'r') as f:
+        query = f.read()
+
+    with Opener() as (con, cur):
+        cur.execute(query, [user_spotify_id,])
+
+        results = cur.fetchall()
+
+    return results[0][0]
+
+def is_user_public(user_id : int) -> bool | None:
+    with open('./sql/user/get_user_by_id.sql', 'r') as f:
+        query = f.read()
+
+    with Opener() as (con, cur):
+        cur.execute(query, [user_id,])
+
+        results = cur.fetchall()
+
+    return bool(results[0][3])
+
+def update_public(spotify_id : str, public : bool) -> None:
+    with open('./sql/user/update_public.sql', 'r') as f:
+        query = f.read()
+
+    with Opener() as (con, cur):
+        cur.execute(query, [int(public), spotify_id])
+

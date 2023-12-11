@@ -7,12 +7,24 @@
         <title>Overview</title>
     </header>
     <body>
-        <div class="TitleBlock">Music Stat Display Home</div>
-        <div class="TitleBlock"><a href="./month/{{ year }}/{{ month }}/"><u>Check this month's stats</u></a></div>
-        <div class="TitleBlock">Total Listening Time: {{ total_time[0] }} hours {{ total_time[1] }} minutes</div>
-        <div class="TitleBlock">Total Artists: {{ artist_count }}</div>
-        <div class="TitleBlock">Total Albums: {{ album_count }}</div>
-        <div class="TitleBlock">Total Songs: {{ song_count }}</div>
+        <div class="TitleBlock">
+            Music Stat Display Home<br>
+            <a href="./month/{{ year }}/{{ month }}/"><u>Check this month's stats</u></a><br>
+            Total Listening Time: {{ total_time[0] }} hours {{ total_time[1] }} minutes<br>
+            Total Artists: {{ artist_count }}<br>
+            Total Albums: {{ album_count }}<br>
+            Total Songs: {{ song_count }}
+        </div>
+        <!-- <div class="TitleBlock"><a href="./month/{{ year }}/{{ month }}/"><u>Check this month's stats</u></a></div> -->
+        <!-- <div class="TitleBlock">Total Listening Time: {{ total_time[0] }} hours {{ total_time[1] }} minutes</div> -->
+        <!-- <div class="TitleBlock">Total Artists: {{ artist_count }}</div> -->
+        <!-- <div class="TitleBlock">Total Albums: {{ album_count }}</div>
+        <div class="TitleBlock">Total Songs: {{ song_count }}</div> -->
+
+        {% if display_name != None %}
+            <div class="UserPfp"><a href="/settings/"><img src="{{ user_pfp_url }}"></a></div>
+            <div class="UserName"><a href="/settings/">{{ display_name }}</a></div>
+        {% endif %}
 
 
         <div class="Summary">

@@ -3,10 +3,16 @@ import datetime
 import configparser
 import calendar
 import os
+import base64
+
 
 import flask
+import flask_session
 import flask_wtf.csrf
 import waitress
+import spotipy
+import wtforms
+
 
 import db
 import date_range
@@ -17,6 +23,7 @@ app = flask.Flask(__name__, static_url_path='', static_folder='static')
 csrf = flask_wtf.csrf.CSRFProtect()
 csrf.init_app(app)
 
+# App Setup
 config = configparser.ConfigParser()
 config.read("config.ini")
 
@@ -24,9 +31,88 @@ templates_path = config['PATHES']['templates']
 DATABASE = config['PATHES']['DATABASE']
 PORT = config['NETWORK']['PORT']
 
+# Spotipy Setup
+CLIENT_ID = config["SPOTIFY"]["CLIENT_ID"]
+CLIENT_SECRET = config["SPOTIFY"]["CLIENT_SECRET"]
+REDIRECT_URI = config["SPOTIFY"]["REDIRECT_URI"]
+SCOPES = config["SPOTIFY"]["SCOPES"]
+
+os.environ["SPOTIPY_CLIENT_ID"] = CLIENT_ID
+os.environ["SPOTIPY_CLIENT_SECRET"] = CLIENT_SECRET
+os.environ["SPOTIPY_REDIRECT_URI"] = REDIRECT_URI
+
+# Session Setup
+app.config['SECRET_KEY'] = base64.b64decode(config["FLASK"]["SECRET"])
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = './data/.flask_session/'
+flask_session.Session(app)
+
+
+
+@app.route('/')
+def root():
+
+    auth_manager = spotipy.oauth2.SpotifyOAuth(scope=SCOPES, show_dialog=True)
+
+    # Being redirected from Spotify auth page
+    if flask.request.args.get("code"):
+        auth_manager.get_access_token(flask.request.args.get("code"))
+
+        # Get user info
+        spotify = spotipy.Spotify(auth_manager=auth_manager)
+        user_info = spotify.me()
+
+        flask.session["user"] = user_info
+
+        # if user is not in database
+        if not db.user_exists(user_info['id']):
+
+            print("User not in database, adding...")
+
+            # Save token for use in tracking container
+            cache_handler = spotipy.CacheFileHandler(cache_path=f"./data/.{user_info['id']}-cache")
+            cache_handler.save_token_to_cache(auth_manager.get_cached_token())
+
+            # Add user to database
+            db.add_user(user_info['display_name'], user_info['id'])
+
+        return flask.redirect('/')
+
+    if 'user' not in flask.session:
+        auth_url = auth_manager.get_authorize_url()
+
+        return flask.render_template('login_index.html', auth_url=auth_url)
+
+    else:
+        user_id = db.get_user_id(flask.session['user']['id'])
+
+        print(f'redirect to /{user_id}/')
+        return flask.redirect(f'/{user_id}/')
+
+@app.route('/logout/')
+def logout():
+    if 'user' in flask.session:
+        flask.session.pop('user')
+        return flask.redirect('/')
+    else:
+        return flask.redirect('/')
 
 @app.route('/<int:user>/')
-def overview(user : int):
+def user_home(user : int):
+
+    # Check if this user should be accessed
+    if 'user' in flask.session:
+        accessing_user = db.get_user_id(flask.session['user']['id'])
+        display_name = flask.session['user']['display_name']
+        user_pfp_url = flask.session['user']['images'][0]['url']
+
+    else:
+        accessing_user = None
+        display_name = None
+        user_pfp_url = None
+
+    if not db.is_user_public(user) and accessing_user != user:
+        return "This user's profile is not public!"
 
     graphs.generate_daily_graph(user)
     graphs.generate_weekly_graph(user)
@@ -45,7 +131,44 @@ def overview(user : int):
     song_count = db.get_song_count(user)
 
 
-    return flask.render_template('overall.html', top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, year=today.year, month=today.month, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
+    return flask.render_template('user_home.html',
+                                 top_albums=top_albums,
+                                 top_songs=top_songs,
+                                 top_artists=top_artists,
+                                 year=today.year,
+                                 month=today.month,
+                                 artist_count=artist_count,
+                                 total_time=total_time,
+                                 album_count=album_count,
+                                 song_count=song_count,
+                                 display_name=display_name,
+                                 user_pfp_url=user_pfp_url)
+
+class SettingsForm(flask_wtf.FlaskForm):
+    checkbox = wtforms.BooleanField('Public')
+
+@app.route('/settings/')
+def settings():
+
+    form = SettingsForm()
+
+    if 'user' in flask.session:
+        display_name = flask.session['user']['display_name']
+        user_pfp_url = flask.session['user']['images'][0]['url']
+    else:
+        return flask.redirect('/')
+
+    return flask.render_template('user_settings.html', display_name=display_name, user_pfp_url=user_pfp_url, form=form)
+
+@app.route('/settings/save/', methods=['POST'])
+def settings_save():
+    form = SettingsForm(csrf_enabled=True)
+
+    user_spotify_id = flask.session['user']['id']
+
+    db.update_public(user_spotify_id, form.checkbox.data)
+
+    return flask.redirect('/settings/')
 
 @app.route('/<int:user>/artists/')
 def artists_overview(user: int):
@@ -81,8 +204,6 @@ def songs_overview(user : int):
 
     return flask.render_template('songs_overview.html', top_songs=top_songs)
 
-
-
 @app.route('/<int:user>/month/<int:year>/<int:month>/')
 def month_overview(user : int, year : int, month : int):
 
@@ -107,7 +228,6 @@ def month_overview(user : int, year : int, month : int):
     links = (f"../../{year}/{month - 1}", f"../../{year}/{month + 1}")
 
     return flask.render_template('month_overview.html', month_name=calendar.month_name[month], year=year, top_artists=top_artists, top_albums=top_albums, top_songs=top_songs, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
-
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/artists/<artist>/')
 def artist_month_overview(user : int, year : int, month : int, artist : int):
@@ -197,10 +317,6 @@ def wrapped(user : int, year : int):
 @app.route('/db/')
 def database():
     return flask.send_file(DATABASE)
-
-@app.route('/')
-def root():
-    return 'home'
 
 if __name__ == '__main__':
     if 'env' in os.environ:
