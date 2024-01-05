@@ -63,6 +63,7 @@ def root():
         user_info = spotify.me()
 
         flask.session["user"] = user_info
+        flask.session["api"] = spotify
 
         # if user is not in database
         if not db.user_exists(user_info['id']):
@@ -93,6 +94,7 @@ def root():
 def logout():
     if 'user' in flask.session:
         flask.session.pop('user')
+        flask.session.pop('api')
         return flask.redirect('/')
     else:
         return flask.redirect('/')
@@ -317,6 +319,59 @@ def wrapped(user : int, year : int):
 @app.route('/db/')
 def database():
     return flask.send_file(DATABASE)
+
+@app.route('/<int:user>/compare/')
+def compare(user : int):
+    if 'api' not in flask.session():
+        return 'you must be logged in for this to work'
+
+    # Get most recent from spotify
+    recent = flask.session['api'].current_user_recently_played()
+
+    spotify_50 = []
+    for track in recent["items"]:
+
+        song_name = track["name"]
+        artists = ""
+
+        for artist in track["artists"]:
+            artists += artist["name"]
+
+            if artist != track["artists"][-1]:
+                artists += ", "
+
+        spotify_50.append(f"{song_name} by {artists}")
+
+    # Get most recent from database
+    database_50 = []
+
+    recent = db.get_last_n(user)
+
+    for song_id in recent:
+        song_name = db.get_song_name_by_id(song_id)
+
+        artists = ""
+
+        for artist in (result := db.get_songs_artists(song_id)):
+            artists += artist
+
+            if artist != result[-1]:
+                artists += ", "
+
+        database_50.append(f"{song_name} by {artists}")
+
+
+    # compare lists
+    found = 0
+    for entry in database_50:
+        if entry in spotify_50:
+            found += 1
+            spotify_50.pop(entry)
+
+    accuracy: float = found / 50
+
+    return flask.render_template("compare.html", accuracy=accuracy, database_50=database_50, spotify_50=spotify_50)
+
 
 if __name__ == '__main__':
     if 'env' in os.environ:
