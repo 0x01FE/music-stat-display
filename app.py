@@ -94,10 +94,9 @@ def root():
 def logout():
     if 'user' in flask.session:
         flask.session.pop('user')
+    if 'api' in flask.session:
         flask.session.pop('api')
-        return flask.redirect('/')
-    else:
-        return flask.redirect('/')
+    return flask.redirect('/')
 
 @app.route('/<int:user>/')
 def user_home(user : int):
@@ -322,7 +321,7 @@ def database():
 
 @app.route('/<int:user>/compare/')
 def compare(user : int):
-    if 'api' not in flask.session():
+    if 'api' not in flask.session:
         return 'you must be logged in for this to work'
 
     # Get most recent from spotify
@@ -330,6 +329,8 @@ def compare(user : int):
 
     spotify_50 = []
     for track in recent["items"]:
+
+        track = track['track']
 
         song_name = track["name"]
         artists = ""

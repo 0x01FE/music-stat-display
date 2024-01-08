@@ -426,7 +426,10 @@ def update_public(spotify_id : str, public : bool) -> None:
 def get_last_n(user_id : int, limit: int | None = 50) -> list | None:
     with Opener() as (con, cur):
         cur.execute(QUERIES["get_last_n"], [user_id, limit])
-        return cur.fetchall()
+
+        results = cur.fetchall()
+
+    return results[0]
 
 def get_songs_artists(song_id : int) -> list[str] | None:
     with Opener() as (con, cur):
@@ -438,7 +441,7 @@ def get_songs_artists(song_id : int) -> list[str] | None:
         return None
 
     artists: list[str] = []
-    for result in results:
+    for result in results[0]:
         artists.append(result)
 
     return artists
