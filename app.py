@@ -17,6 +17,7 @@ import wtforms
 import db
 import date_range
 import graphs
+from user import User
 
 app = flask.Flask(__name__, static_url_path='', static_folder='static')
 
@@ -321,11 +322,11 @@ def database():
 
 @app.route('/<int:user>/compare/')
 def compare(user : int):
-    if 'api' not in flask.session:
-        return 'you must be logged in for this to work'
 
     # Get most recent from spotify
-    recent = flask.session['api'].current_user_recently_played()
+    current_user = User(user)
+
+    recent = current_user.api.current_user_recently_played()
 
     spotify_50 = []
     for track in recent["items"]:
@@ -341,14 +342,15 @@ def compare(user : int):
             if artist != track["artists"][-1]:
                 artists += ", "
 
-        spotify_50.append(f"{song_name} by {artists}")
+        spotify_50.append(f"{song_name} by {artists.lower()}")
 
     # Get most recent from database
     database_50 = []
 
     recent = db.get_last_n(user)
 
-    for song_id in recent:
+    for result in recent:
+        song_id = result[0]
         song_name = db.get_song_name_by_id(song_id)
 
         artists = ""
@@ -361,15 +363,9 @@ def compare(user : int):
 
         database_50.append(f"{song_name} by {artists}")
 
+    matches = len(set(spotify_50) & set(database_50))
 
-    # compare lists
-    found = 0
-    for entry in database_50:
-        if entry in spotify_50:
-            found += 1
-            spotify_50.pop(entry)
-
-    accuracy: float = found / 50
+    accuracy: float = (matches / 50) * 100
 
     return flask.render_template("compare.html", accuracy=accuracy, database_50=database_50, spotify_50=spotify_50)
 

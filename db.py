@@ -3,6 +3,7 @@ import configparser
 import typing
 import collections
 import os
+from typing import Literal
 
 import sqlparse
 
@@ -429,7 +430,7 @@ def get_last_n(user_id : int, limit: int | None = 50) -> list | None:
 
         results = cur.fetchall()
 
-    return results[0]
+    return results
 
 def get_songs_artists(song_id : int) -> list[str] | None:
     with Opener() as (con, cur):
@@ -442,15 +443,33 @@ def get_songs_artists(song_id : int) -> list[str] | None:
 
     artists: list[str] = []
     for result in results[0]:
-        artists.append(result)
+        artists.append(result.replace("-", " "))
 
     return artists
 
 def get_song_name_by_id(song_id : int) -> str | None:
     with Opener() as (con, cur):
-        cur.execute(QUERIES["get_song_name_by_id"])
+        cur.execute(QUERIES["get_song_name_by_id"], [song_id,])
 
         results = cur.fetchall()
 
-    return results
+    return results[0][0]
 
+"""
+Get the id of some artist, album, or user.
+
+Parameters:
+    table (str) : Name of the table the item is in
+    name (str) : Name of the item you're looking for
+
+Returns:
+    id (int | None) : Id if found, otherwise None.
+"""
+def get_id(table : Literal["artists", "albums", "users"], name : str) -> int | None:
+    with Opener() as (con, cur):
+        cur.execute("SELECT * FROM '{}' WHERE name = ?".format(table), [name])
+        results = cur.fetchall()
+
+    if results:
+        return results[0][0]
+    return None
