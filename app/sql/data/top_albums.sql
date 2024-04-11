@@ -3,7 +3,9 @@ SELECT
 	artist_name,
 	artist_id,
 	album_name,
-	SUM(time) time
+	cover_art_url,
+	SUM(time) time,
+	album_spotify_id
 FROM
 	(SELECT
 		artists.name artist_name,
@@ -11,7 +13,9 @@ FROM
 		albums.name album_name,
 		songs.name song_name,
 		SUM("listen-events".time) / COUNT(DISTINCT artists.id) time,
-		albums.id album_id
+		albums.id album_id,
+		albums.spotify_id album_spotify_id,
+		albums.cover_art_url cover_art_url
 	FROM
 		"listen-events"
 	INNER JOIN songs ON "listen-events".song=songs.id
@@ -31,7 +35,9 @@ SELECT
 	artist_name,
 	artist_id,
 	album_name,
-	SUM(time) time
+	cover_art_url,
+	SUM(time) time,
+	album_spotify_id
 FROM
 	(SELECT
 		artists.name artist_name,
@@ -39,7 +45,9 @@ FROM
 		albums.name album_name,
 		songs.name song_name,
 		SUM("listen-events".time) / COUNT(DISTINCT artists.id) time,
-		albums.id album_id
+		albums.id album_id,
+		albums.spotify_id album_spotify_id,
+		albums.cover_art_url cover_art_url
 	FROM
 		"listen-events"
 	INNER JOIN songs ON "listen-events".song=songs.id

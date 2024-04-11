@@ -8,4 +8,4 @@ jackson/*
 *.png
 *.yml
 *.sh
-
+.flask_session

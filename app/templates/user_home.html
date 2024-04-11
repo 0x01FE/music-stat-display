@@ -2,7 +2,7 @@
 <html lang="en">
     <header>
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style-redo.css') }}">
         <script src="{{ url_for('static', filename='main.js') }}"></script>
         <title>Overview</title>
     </header>
@@ -29,19 +29,19 @@
 
         <div class="Summary">
             <div class="SummaryBlock">
-                <header><a href="./artists/"><u>Top Artists</u></a></header>
+                <h2><a href="./artists/"><u>Top Artists</u></a></h2>
                 {% for artist in top_artists %}
                     <p>{{ loop.index }}. <a href="./artists/{{ artist[1] }}">{{ artist[0] }}</a> : {{ artist[2][0] }} hours {{ artist[2][1] }} minutes</p>
                 {% endfor %}
             </div>
             <div class="SummaryBlock">
-                <header><a href="./albums/"><u>Top Albums</u></a></header>
+                <h2><a href="./albums/"><u>Top Albums</u></a></h2>
                 {% for album in top_albums %}
-                    <p>{{ loop.index }}. {{ album[2] }} by <a href="./artists/{{ album[1] }}">{{ album[0] }}</a>: {{ album[3][0] }} hours {{ album[3][1] }} minutes</p>
+                    <img src="{{ album.cover_art_url }}">{{ loop.index }}. {{ album.title }} by <a href="./artists/{{ album.artist_id }}">{{ album.artist_name }}</a>: {{ album.time[0] }} hours {{ album.time[1] }} minutes<br>
                 {% endfor %}
             </div>
             <div class="SummaryBlock">
-                <header><a href="./songs/"><u>Top Songs</u></a></header>
+                <h2><a href="./songs/"><u>Top Songs</u></a></h2>
                 {% for song in top_songs %}
                     <p>{{ loop.index }}. {{ song[2] }} <u>by</u> <a href="./artists/{{ song[1] }}">{{ song[0] }}</a>: {{ song[3][0] }} hours {{ song[3][1] }} minutes</p>
                 {% endfor %}

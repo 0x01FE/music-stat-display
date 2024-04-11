@@ -5,6 +5,7 @@ import collections
 import os
 from typing import Literal
 
+import spotipy
 import sqlparse
 
 import listen_time
@@ -13,6 +14,15 @@ import date_range
 config = configparser.ConfigParser()
 config.read("config.ini")
 
+CLIENT_ID = config["SPOTIFY"]["CLIENT_ID"]
+CLIENT_SECRET = config["SPOTIFY"]["CLIENT_SECRET"]
+REDIRECT_URI = config["SPOTIFY"]["REDIRECT_URI"]
+
+os.environ["SPOTIPY_CLIENT_ID"] = CLIENT_ID
+os.environ["SPOTIPY_CLIENT_SECRET"] = CLIENT_SECRET
+os.environ["SPOTIPY_REDIRECT_URI"] = REDIRECT_URI
+
+spotify = spotipy.Spotify(client_credentials_manager=spotipy.oauth2.SpotifyClientCredentials())
 
 DATABASE = config['PATHES']['DATABASE']
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -47,6 +57,32 @@ class Opener():
         self.con.close()
 
 
+def get_spotify_artist_image_url(id: str) -> str | None:
+    spotify_response = spotify.artist(id)
+
+    if spotify_response["images"]:
+        image_url = spotify_response["images"][0]["url"]
+    else:
+        image_url = None
+
+    return image_url
+
+def get_spotify_album_image_url(id: str) -> str | None:
+
+    spotify_response = spotify.album(id)
+
+    if spotify_response["images"]:
+        image_url = spotify_response["images"][0]["url"]
+    else:
+        image_url = None
+
+    if image_url:
+        with Opener() as (con, cur):
+            cur.execute(QUERIES["insert_cover_art"], [image_url, id])
+
+    return image_url
+
+
 
 
 def get_top_artists(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> dict:
@@ -79,7 +115,7 @@ def get_top_artists(user_id : int, range : date_range.DateRange | None = None, t
 
 
 
-def get_top_albums(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> dict:
+def get_top_albums(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> list[dict]:
     dated = False
     args = [user_id]
     if range:
@@ -101,9 +137,20 @@ def get_top_albums(user_id : int, range : date_range.DateRange | None = None, to
         artist_name: str = album[0].replace('-', ' ').title()
         artist_id: int = album[1]
         album_name: str = album[2]
-        time: tuple[int, float] = listen_time.ListenTime(album[3]).to_hour_and_seconds()
+        cover_art_url: str = album[3]
+        time: tuple[int, float] = listen_time.ListenTime(album[4]).to_hour_and_seconds()
 
-        top.append((artist_name, artist_id, album_name, time))
+        if not cover_art_url:
+            album_spotify_id: str = album[5]
+            cover_art_url = get_spotify_album_image_url(album_spotify_id)
+
+        top.append({
+            "artist_name" : artist_name,
+            "artist_id" : artist_id,
+            "title" : album_name,
+            "cover_art_url" : cover_art_url,
+            "time" : time
+        })
 
     return top
 
