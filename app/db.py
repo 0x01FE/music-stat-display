@@ -65,6 +65,12 @@ def get_spotify_artist_image_url(id: str) -> str | None:
     else:
         image_url = None
 
+    if image_url:
+        with Opener() as (con, cur):
+            cur.execute(QUERIES["insert_icon_url"], [image_url, id])
+    else:
+        image_url = "/not-found.jpg"
+
     return image_url
 
 def get_spotify_album_image_url(id: str) -> str | None:
@@ -85,7 +91,7 @@ def get_spotify_album_image_url(id: str) -> str | None:
 
 
 
-def get_top_artists(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> dict:
+def get_top_artists(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> list[dict]:
     dated = False
     args = [user_id]
     if range:
@@ -107,9 +113,19 @@ def get_top_artists(user_id : int, range : date_range.DateRange | None = None, t
     for artist in results:
         artist_name: str = artist[0].replace('-', ' ').title()
         artist_id: str = artist[1]
-        time: tuple[int, float] = listen_time.ListenTime(artist[2]).to_hour_and_seconds()
+        icon_url: str | None = artist[3]
+        time: tuple[int, float] = listen_time.ListenTime(artist[4]).to_hour_and_seconds()
 
-        top.append((artist_name, artist_id, time))
+        if not icon_url:
+            artist_spotify_id: str = artist[2]
+            icon_url = get_spotify_artist_image_url(artist_spotify_id)
+
+        top.append({
+            "name" : artist_name,
+            "id" : artist_id,
+            "time" : time,
+            "icon_url" : icon_url
+        })
 
     return top
 
@@ -173,14 +189,25 @@ def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top
         results = results[:top]
 
     # Format results
-    top: list[tuple[tuple[int, float], str, str]] = []
+    top = []
     for song in results:
         artist_name: str = song[0].replace('-', ' ').title()
         artist_id: int = song[1]
         song_name: str = song[2]
-        time: tuple[int, float] = listen_time.ListenTime(song[3]).to_hour_and_seconds()
+        cover_art_url: str | None = song[3]
+        time: tuple[int, float] = listen_time.ListenTime(song[5]).to_hour_and_seconds()
 
-        top.append((artist_name, artist_id, song_name, time))
+        if not cover_art_url:
+            album_spotify_id: str = song[4]
+            cover_art_url = get_spotify_album_image_url(album_spotify_id)
+
+        top.append({
+            "artist_name" : artist_name,
+            "artist_id" : artist_id,
+            "name" : song_name,
+            "cover_art_url" : cover_art_url,
+            "time" : time
+        })
 
     return top
 

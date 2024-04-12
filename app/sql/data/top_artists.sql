@@ -2,13 +2,17 @@
 SELECT
     artist_name,
 	artist_id,
+	artist_spotify_id,
+	icon_url,
     sum(time)
 FROM
     (SELECT
         artists.name artist_name,
 		artists.id artist_id,
         songs.name song_name,
-        SUM("listen-events".time) time
+        SUM("listen-events".time) time,
+		artists.spotify_id artist_spotify_id,
+		artists.icon_url icon_url
     FROM
         "listen-events"
     INNER JOIN songs ON "listen-events".song=songs.id
@@ -27,13 +31,17 @@ ORDER BY
 SELECT
     artist_name,
 	artist_id,
+	artist_spotify_id,
+	icon_url,
     sum(time)
 FROM
     (SELECT
         artists.name artist_name,
 		artists.id artist_id,
         songs.name song_name,
-        SUM("listen-events".time) time
+        SUM("listen-events".time) time,
+		artists.spotify_id artist_spotify_id,
+		artists.icon_url icon_url
     FROM
         "listen-events"
     INNER JOIN songs ON "listen-events".song=songs.id

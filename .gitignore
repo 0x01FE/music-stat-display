@@ -9,3 +9,4 @@ jackson/*
 *.yml
 *.sh
 .flask_session
+.cache

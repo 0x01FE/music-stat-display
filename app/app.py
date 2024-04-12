@@ -109,15 +109,11 @@ def user_home(user : int):
     if not db.is_user_public(user) and accessing_user != user:
         return "This user's profile is not public!"
 
-    graphs.generate_daily_graph(user)
-    graphs.generate_weekly_graph(user)
-    graphs.generate_monthly_graph(user)
-
     today = datetime.datetime.today()
 
-    top_artists = db.get_top_artists(user, top=5)
-    top_albums = db.get_top_albums(user, top=5)
-    top_songs = db.get_top_songs(user, top=5)
+    top_artists = db.get_top_artists(user, top=10)
+    top_albums = db.get_top_albums(user, top=10)
+    top_songs = db.get_top_songs(user, top=10)
 
     total_time = db.get_total_time(user).to_hour_and_seconds()
 

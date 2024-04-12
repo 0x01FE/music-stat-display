@@ -1,25 +1,34 @@
+@import url('https://fonts.googleapis.com/css?family=PT%20Mono:700|PT%20Mono:400');
 @font-face {
     font-family:cyberpunkwaifus;
     src:url(../CyberpunkWaifus.woff) format('woff');
     font-weight:400;
-    font-style:normal
-  }
+    font-style:normal;
+}
 
-html {
-    height: 100%;
-    width: 100%;
+:root {
+    --background-color: #fff;
+
+    --link-color: hsl(216, 98%, 52%);
+    --link-hover-color: hsl(216, 91%, 42%);
+    --header-link-color: hsl(0, 0%, 25%);
+    --header-link-hover-color: hsl(0, 0%, 50%);
+
+    --body-text-size: 20px;
+    --body-text-color: black;
+    --cover-art-size: 50px;
+
+    --border-display: hidden;
+    --border-radius: 15px;
+    --border-color: hsla(0, 0%, 0%, 25%);
 }
 
 body {
-    /*font-family: 'IBM Plex Mono', sans-serif;*/
-    /* font-family:cyberpunkwaifus; */
-    font-family: Arial, Helvetica, sans-serif;
-    color: white;
-    background-color: black;
-    opacity: 0.9;
-    width: 99%;
-    height: 100%;
-    font-size: 19px;
+    font-family: 'PT Mono';
+    color: var(--body-text-color);
+    background-color: var(--background-color);
+    font-size: var(--body-text-size);
+    font-weight: 400;
 }
 
 .TopTen {
@@ -31,17 +40,23 @@ body {
 }
 
 h1, h2, h3 {
-    font-family:cyberpunkwaifus;
+    /* font-family:cyberpunkwaifus; */
+    font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
-.TitleBlock {
-    font-weight: bold;
-    font-size: 24px;
-    padding: 15px;
-    border-style: solid;
-    border-color: white;
-    margin: 5px;
-    display:inline-block;
+.HeaderContainer {
+    text-align: center;
+
+    margin: 0.5em 30%;
+    padding: 0.5em;
+
+    border-style: var(--border-display);
+    border-color: var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.HeaderContainer h1 {
+    font-family: cyberpunkwaifus;
 }
 
 .SettingBlock {
@@ -68,6 +83,7 @@ h1, h2, h3 {
 }
 
 .Graphs {
+    display: none;
     text-align: center;
     padding: 5px;
 }
@@ -81,34 +97,57 @@ h1, h2, h3 {
     padding: 15px;
 }
 
-.Summary {
-    text-align: center;
+.SummaryContainer {
+    display: flex;
+    flex-direction: row;
+    margin: 0 2.5%;
+    padding: 1em;
+    justify-content: center;
+
+    border-style: var(--border-display);
+    border-color: var(--border-color);
+    border-radius: var(--border-radius);
 }
 
 .SummaryBlock {
-    /* border-style: solid;
-    border-radius: 40px; */
-    padding: 15px;
-    display: inline-block;
-    text-align: left;
-    /* margin: 15px; */
+    width: fit-content;
+    margin: 0 0.5em;
+    padding: 1em;
+
+    line-height: 2em;
+
+    border-style: var(--border-display);
+    border-color: var(--border-color);
+    border-radius: var(--border-radius);
 }
 
 .SummaryBlock h2 {
+    text-align: center;
     font-size: 30px;
     font-weight: 900;
-    padding-top: 10pt;
+}
+
+.SummaryBlock h2 a {
+    color: var(--header-link-color);
+}
+
+.SummaryBlock h2 a:hover {
+    color: var(--header-link-hover-color);
 }
 
 .SummaryBlock img {
-    height: 30px;
-    width: 30px;
-    padding: 0 0;
+    height: var(--cover-art-size);
+    width: var(--cover-art-size);
     margin: 0 0;
+    padding: 0 0;
     margin-right: 10px;
-    border: 0 0;
-    line-height: 0;
-    font-size: 0;
+
+    vertical-align: middle;
+    margin-bottom: 0.25em;
+}
+
+.TopSongs {
+    justify-content: center;
 }
 
 .UserName {
@@ -148,13 +187,13 @@ h1, h2, h3 {
 } */
 
 a {
-    color: #ed145b;
+    color: var(--link-color);
     text-align: center;
     text-decoration: none;
 }
 
 a:hover {
-    color: #8b8fc6;
+    color: var(--link-hover-color);
 }
 
 .selector {

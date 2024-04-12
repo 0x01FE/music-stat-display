@@ -3,6 +3,8 @@ SELECT
 	artist_name,
 	artist_id,
 	song_name,
+	cover_art_url,
+	album_spotify_id,
 	MIN(time) time
 FROM
 	(SELECT
@@ -10,11 +12,14 @@ FROM
 		artists.id artist_id,
 		songs.name song_name,
 		songs.id song_id,
-		SUM("listen-events".time) time
+		SUM("listen-events".time) time,
+		albums.cover_art_url cover_art_url,
+		albums.spotify_id album_spotify_id
 	FROM
 		"listen-events"
 	INNER JOIN songs ON "listen-events".song=songs.id
 	INNER JOIN artists ON songs.artist=artists.id
+	INNER JOIN albums ON songs.album=albums.id
 	WHERE
 		"listen-events".user = ?
 	GROUP BY
@@ -32,6 +37,8 @@ SELECT
 	artist_name,
 	artist_id,
 	song_name,
+	cover_art_url,
+	album_spotify_id,
 	MIN(time) time
 FROM
 	(SELECT
@@ -39,7 +46,9 @@ FROM
 		artists.id artist_id,
 		songs.name song_name,
 		songs.id song_id,
-		SUM("listen-events".time) time
+		SUM("listen-events".time) time,
+		albums.cover_art_url cover_art_url,
+		albums.spotify_id album_spotify_id
 	FROM
 		"listen-events"
 	INNER JOIN songs ON "listen-events".song=songs.id
