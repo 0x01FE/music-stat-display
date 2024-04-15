@@ -2,10 +2,12 @@
 <html lang="en">
     <header>
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='style-redo.css') }}">
+        <link id="style" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script src="{{ url_for('static', filename='theme-changer.js') }}"></script>
         <title>Overview - All Time</title>
     </header>
     <body>
+        <button type="button" onclick="changeTheme()">Swap Theme</button>
         <div class="HeaderContainer">
             <h1>Music Stat Display Home</h1>
             {{ total_time[0] }} <b>hours</b> {{ total_time[1] }} <b>minutes</b><br>
