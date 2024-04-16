@@ -1,7 +1,7 @@
 
 let current_theme = "dark";
 const light_theme_path = "/style-redo.css";
-const dark_theme_path = "/";
+const dark_theme_path = "/redo-vahalla-theme.css";
 
 
 function setTheme(theme_name) {

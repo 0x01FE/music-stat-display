@@ -64,5 +64,5 @@ addEventListener("DOMContentLoaded", (event) => {
     hours = document.getElementById("hours");
     minutes = document.getElementById("minutes");
 
-    selectButton("b1");
+    allTime("b1");
 });
