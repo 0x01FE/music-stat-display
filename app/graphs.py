@@ -163,7 +163,7 @@ def generate_artist_graph(user_id : int, artist_id : int, ranges : list[date_ran
         times.append(time.to_hours())
         dates.append(range.start.strftime("%Y-%m-%d"))
 
-    artist_name = db.get_artist_name(artist_id)
+    artist_name = db.get_artist_info(artist_id)
 
     times = list(reversed(times))
     dates = list(reversed(dates))

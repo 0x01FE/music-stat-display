@@ -91,7 +91,7 @@ def get_spotify_album_image_url(id: str) -> str | None:
 
 
 
-def get_top_artists(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> list[dict]:
+def get_top_artists(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None, images : bool = True) -> list[dict]:
     dated = False
     args = [user_id]
     if range:
@@ -116,7 +116,7 @@ def get_top_artists(user_id : int, range : date_range.DateRange | None = None, t
         icon_url: str | None = artist[3]
         time: tuple[int, float] = listen_time.ListenTime(artist[4]).to_hour_and_seconds()
 
-        if not icon_url:
+        if not icon_url and images:
             artist_spotify_id: str = artist[2]
             icon_url = get_spotify_artist_image_url(artist_spotify_id)
 
@@ -131,7 +131,7 @@ def get_top_artists(user_id : int, range : date_range.DateRange | None = None, t
 
 
 
-def get_top_albums(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None) -> list[dict]:
+def get_top_albums(user_id : int, range : date_range.DateRange | None = None, top : typing.Optional[int] = None, images : bool = True) -> list[dict]:
     dated = False
     args = [user_id]
     if range:
@@ -156,7 +156,7 @@ def get_top_albums(user_id : int, range : date_range.DateRange | None = None, to
         cover_art_url: str = album[3]
         time: tuple[int, float] = listen_time.ListenTime(album[4]).to_hour_and_seconds()
 
-        if not cover_art_url:
+        if not cover_art_url and images:
             album_spotify_id: str = album[5]
             cover_art_url = get_spotify_album_image_url(album_spotify_id)
 
@@ -172,7 +172,7 @@ def get_top_albums(user_id : int, range : date_range.DateRange | None = None, to
 
 
 
-def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top : int | None = None) -> dict:
+def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top : int | None = None, images : bool = True) -> dict:
     dated = False
     args = [user_id]
     if range:
@@ -197,7 +197,7 @@ def get_top_songs(user_id : int, range : date_range.DateRange | None = None, top
         cover_art_url: str | None = song[3]
         time: tuple[int, float] = listen_time.ListenTime(song[5]).to_hour_and_seconds()
 
-        if not cover_art_url:
+        if not cover_art_url and images:
             album_spotify_id: str = song[4]
             cover_art_url = get_spotify_album_image_url(album_spotify_id)
 
@@ -284,7 +284,7 @@ def get_song_count(user_id : int, range : date_range.DateRange | None = None) ->
 
 
 
-def get_artist_top_albums(user_id : int, artist : int, range : date_range.DateRange | None = None) -> dict:
+def get_artist_top_albums(user_id : int, artist : int, range : date_range.DateRange | None = None) -> list[dict]:
     dated = False
     args = [user_id, artist]
     if range:
@@ -298,14 +298,26 @@ def get_artist_top_albums(user_id : int, artist : int, range : date_range.DateRa
         results = cur.fetchall()
 
     # Format results
-    top = collections.OrderedDict()
+    top = []
     for album in results:
-        top[album[1]] = listen_time.ListenTime(album[2]).to_hour_and_seconds()
+        title: str = album[1]
+        time: tuple = listen_time.ListenTime(album[2]).to_hour_and_seconds()
+        cover_art_url: str | None = album[3]
+
+        if not cover_art_url:
+            album_spotify_id: str = album[4]
+            cover_art_url = get_spotify_album_image_url(album_spotify_id)
+
+        top.append({
+            "title" : title,
+            "time" : time,
+            "cover_art_url" : cover_art_url
+        })
 
     return top
 
 
-def get_artist_top_songs(user_id : int, artist : int, range : date_range.DateRange | None = None) -> dict:
+def get_artist_top_songs(user_id : int, artist : int, range : date_range.DateRange | None = None) -> list[dict]:
     dated = False
     args = [user_id, artist]
     if range:
@@ -319,9 +331,23 @@ def get_artist_top_songs(user_id : int, artist : int, range : date_range.DateRan
         results = cur.fetchall()
 
     # Format results
-    top = collections.OrderedDict()
+    top = []
     for song in results:
-        top[song[1]] = listen_time.ListenTime(song[2]).to_hour_and_seconds()
+        title: str = song[1]
+        time: tuple = listen_time.ListenTime(song[2]).to_hour_and_seconds()
+        play_count: int = song[3]
+        cover_art_url: str | None = song[4]
+
+        if not cover_art_url:
+            album_spotify_id: str = song[5]
+            cover_art_url = get_spotify_album_image_url(album_spotify_id)
+
+        top.append({
+            "title" : title,
+            "time" : time,
+            "play_count" : play_count,
+            "cover_art_url" : cover_art_url
+        })
 
     return top
 
@@ -353,14 +379,27 @@ def get_artist_total(user_id : int, artist : int, range : date_range.DateRange |
         return listen_time.ListenTime(results[0][0])
     return None
 
-def get_artist_name(artist : int) -> str | None:
+def get_artist_info(artist_id : int) -> dict | None:
     with Opener() as (con, cur):
-        cur.execute(QUERIES["get_artist_name"], [artist,])
+        cur.execute(QUERIES["get_artist_info"], [artist_id,])
 
         results = cur.fetchall()
 
     if results:
-        return results[0][0].replace('-', ' ').title()
+        artist = results[0]
+        name: str = artist[0].replace('-', ' ').title()
+        icon_url: str | None = artist[1]
+
+        if not icon_url:
+            artist_spotify_id: str = artist[2]
+            icon_url = get_spotify_artist_image_url(artist_spotify_id)
+
+        return {
+            "name" : name,
+            "icon_url" : icon_url,
+            "id" : artist_id
+        }
+
     return None
 
 

@@ -1,59 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-  <header>
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
-    <title>{{ artist_name }} overall</title>
-  </header>
-  <body>
-    <a href=".." style="position:absolute;"><u><< back</u></a>
-    <div class="Artist">
-      <div class="Block">
-        <header>{{ artist_name }}</header>
-        <p>Total Listening Time: <u>{{ artist_listen_time[0] }} hours {{ artist_listen_time[1] }} minutes</u></p>
-      </div>
-    </div>
-    <div class="Artist">
-        <div class="Block">
-            <header style="color:#ed145b;">Top Albums</header>
-
-            {% for album in top_albums %}
-                <p>{{ loop.index }}. {{ album }} : {{ top_albums[album][0] }} hours {{ top_albums[album][1] }} minutes</p>
-            {% endfor %}
-
+    <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link id="style" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script>
+            let times = JSON.parse('{{ times | tojson }}');
+        </script>
+        <script src="{{ url_for('static', filename='theme-changer.js') }}"></script>
+        <script src="{{ url_for('static', filename='artist.js') }}"></script>
+        <title>{{ artist_info.name }} overall</title>
+    </header>
+    <body>
+        <a href=".." style="position:absolute;"><u><< back</u></a>
+        <div class="ArtistHeaderContainer">
+                <img src="{{ artist_info.icon_url }}">
+                <h1>{{ artist_info.name }}</h1>
+                <span id="hours">{{ times.overall[0] }}</span> <b>hours</b> <span id="minutes">{{ times.overall[1] }}</span> <b>minutes</b>
         </div>
 
-        <div class="Block">
-            <header style="color:#e67ae6;">Top Songs</header>
-
-            {% for song in top_songs %}
-                <p>{{ loop.index }}. {{ song }} : {{ top_songs[song][0] }} hours {{ top_songs[song][1] }} minutes</p>
-            {% endfor %}
+        <div id="ArtistPeriodSelectionBar" class="ArtistPeriodSelectionBar">
+            <h2>Time Period</h2>
+            <button id="b1" onclick="allTime(this.id)">All Time</button><br>
+            <button id="b2" onclick="sixMonths(this.id)">Past 6 Months</button><br>
+            <button id="b3" onclick="fourWeeks(this.id)">Past 4 Weeks</button>
         </div>
-    </div>
+        <div id="all-time">
+            <div class="SummaryContainer">
+                <div class="SummaryBlock">
+                    <h2>Top Albums</h2>
+                    {% for album in overall.top_albums %}
+                        <p><img src="{{ album.cover_art_url }}">{{ loop.index }}. {{ album.title }} : {{ album.time[0] }} hours {{ album.time[1] }} minutes</p>
+                    {% endfor %}
+                </div>
 
-  <select id="graph-select">
-      <option value="DailyTimeGraph">Daily Listening Time</option>
-      <option value="WeeklyTimeGraph">Weekly Listening Time</option>
-      <option value="MonthlyTimeGraph">Monthly Listening Time</option>
-      <option value="ydTimeGraph">Daily Listening Over a Year</option>
-  </select>
+                <div class="SummaryBlock">
+                    <h2>Top Songs</h2>
+                    {% for song in overall.top_songs %}
+                        <p><img src="{{ song.cover_art_url }}">{{ loop.index }}. {{ song.title }} : {{ song.time[0] }} hours {{ song.time[1] }} minutes</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div id="6m">
+            <div class="SummaryContainer">
+                <div class="SummaryBlock">
+                    <h2>Top Albums</h2>
+                    {% for album in six_months.top_albums %}
+                        <p><img src="{{ album.cover_art_url }}">{{ loop.index }}. {{ album.title }} : {{ album.time[0] }} hours {{ album.time[1] }} minutes</p>
+                    {% endfor %}
+                </div>
 
-  <div id="graphs">
-      <div id="DailyTimeGraph" style="display: none;">
-          <img src="{{ url_for('static', filename='{}-day.png'.format(artist_id)) }}">
-      </div>
-      <div id="WeeklyTimeGraph" style="display: none;">
-          <img src="{{ url_for('static', filename='{}-week.png'.format(artist_id)) }}">
-      </div>
-      <div id="MonthlyTimeGraph" style="display: none;">
-          <img src="{{ url_for('static', filename='{}-month.png'.format(artist_id)) }}">
-      </div>
-      <div id="ydTimeGraph" style="display: none;">
-        <img src="{{ url_for('static', filename='{}-yd.png'.format(artist_id)) }}">
-    </div>
-  </div>
+                <div class="SummaryBlock">
+                    <h2>Top Songs</h2>
+                    {% for song in six_months.top_songs %}
+                        <p><img src="{{ song.cover_art_url }}">{{ loop.index }}. {{ song.title }} : {{ song.time[0] }} hours {{ song.time[1] }} minutes</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div id="4w">
+            <div class="SummaryContainer">
+                <div class="SummaryBlock">
+                    <h2>Top Albums</h2>
+                    {% for album in one_month.top_albums %}
+                        <p><img src="{{ album.cover_art_url }}">{{ loop.index }}. {{ album.title }} : {{ album.time[0] }} hours {{ album.time[1] }} minutes</p>
+                    {% endfor %}
+                </div>
 
-  </body>
+                <div class="SummaryBlock">
+                    <h2>Top Songs</h2>
+                    {% for song in one_month.top_songs %}
+                        <p><img src="{{ song.cover_art_url }}">{{ loop.index }}. {{ song.title }} : {{ song.time[0] }} hours {{ song.time[1] }} minutes</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </body>
 </html>

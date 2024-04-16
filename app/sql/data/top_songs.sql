@@ -53,6 +53,7 @@ FROM
 		"listen-events"
 	INNER JOIN songs ON "listen-events".song=songs.id
 	INNER JOIN artists ON songs.artist=artists.id
+	INNER JOIN albums ON songs.album=albums.id
 	WHERE
 		"listen-events".user = ?
     	AND DATE("listen-events".date) BETWEEN ? AND ?

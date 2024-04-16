@@ -171,27 +171,46 @@ def artists_overview(user: int):
 @app.route('/<int:user>/artists/<artist>/')
 def artist_overview(user: int, artist : int):
 
-    total_time = db.get_artist_total(user, artist).to_hour_and_seconds()
-    top_albums = db.get_artist_top_albums(user, artist)
-    top_songs = db.get_artist_top_songs(user, artist)
+    times = {}
 
-    artist_name = db.get_artist_name(artist)
+    # All Time
+    overall = {}
 
-    graphs.generate_artist_graph(user, artist, date_range.daily_ranges(30), 'd')
-    graphs.generate_artist_graph(user, artist, date_range.weekly_ranges(4), 'w')
-    graphs.generate_artist_graph(user, artist, date_range.monthly_ranges(12), 'm')
+    times["overall"] = db.get_artist_total(user, artist).to_hour_and_seconds()
+    overall["top_albums"] = db.get_artist_top_albums(user, artist)
+    overall["top_songs"] = db.get_artist_top_songs(user, artist)
 
-    return flask.render_template('artist.html', artist_name=artist_name, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs, artist_id=artist)
+    artist_info = db.get_artist_info(artist)
+
+    # Past 6 Months
+    period = date_range.last_n_months(6)
+
+    six_months = {}
+
+    times["six_months"] = db.get_artist_total(user, artist, period).to_hour_and_seconds()
+    six_months["top_albums"] = db.get_artist_top_albums(user, artist, period)
+    six_months["top_songs"] = db.get_artist_top_songs(user, artist, period)
+
+    # Past 1 Month
+    period = date_range.last_n_months(1)
+
+    one_month = {}
+
+    times["one_month"] = db.get_artist_total(user, artist, period).to_hour_and_seconds()
+    one_month["top_albums"] = db.get_artist_top_albums(user, artist, period)
+    one_month["top_songs"] = db.get_artist_top_songs(user, artist, period)
+
+    return flask.render_template('artist.html', artist_info=artist_info, overall=overall, six_months=six_months, one_month=one_month, times=times)
 
 @app.route('/<int:user>/albums/')
 def albums_overview(user : int):
-    top_albums = db.get_top_albums(user)
+    top_albums = db.get_top_albums(user, images=False)
 
     return flask.render_template('albums_overview.html', top_albums=top_albums)
 
 @app.route('/<int:user>/songs/')
 def songs_overview(user : int):
-    top_songs = db.get_top_songs(user)
+    top_songs = db.get_top_songs(user, images=False)
 
     return flask.render_template('songs_overview.html', top_songs=top_songs)
 
@@ -232,7 +251,7 @@ def artist_month_overview(user : int, year : int, month : int, artist : int):
     top_albums = db.get_artist_top_albums(user, artist, period)
     top_songs = db.get_artist_top_songs(user, artist, period)
 
-    artist_name = db.get_artist_name(artist)
+    artist_name = db.get_artist_info(artist)
 
     return flask.render_template('artist_month_overview.html', artist_name=artist_name, month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
 
@@ -244,7 +263,7 @@ def artists_month_overview(user : int, year : int, month : int):
     if not period.get_range(year, month):
         return "Invalid month or year."
 
-    top_artists = db.get_top_artists(user, period)
+    top_artists = db.get_top_artists(user, period, images=False)
 
     return flask.render_template('artists_month_overview.html', top_artists=top_artists, month_name=calendar.month_name[month], year=year)
 
@@ -256,7 +275,7 @@ def albums_month_overview(user : int, year : int, month : int):
     if not period.get_range(year, month):
         return "Invalid month or year."
 
-    top_albums = db.get_top_albums(user, period)
+    top_albums = db.get_top_albums(user, period, images=False)
 
     return flask.render_template('albums_month_overview.html', top_albums=top_albums, month_name=calendar.month_name[month], year=year)
 
@@ -268,7 +287,7 @@ def songs_month_overview(user : int, year : int, month : int):
     if not period.get_range(year, month):
         return "Invalid month or year."
 
-    top_songs = db.get_top_songs(user, period)
+    top_songs = db.get_top_songs(user, period, images=False)
 
     return flask.render_template('songs_month_overview.html', top_songs=top_songs, month_name=calendar.month_name[month], year=year)
 

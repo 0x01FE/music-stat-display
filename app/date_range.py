@@ -75,3 +75,18 @@ def daily_ranges(days : int) -> list[DateRange]:
         ranges.append(DateRange(start, end))
 
     return ranges
+
+def last_n_months(n : int) -> DateRange:
+    today = datetime.datetime.now()
+
+    start = today - dateutil.relativedelta.relativedelta(months=n)
+
+    return DateRange(start, today)
+
+def last_n_weeks(n : int) -> DateRange:
+    today = datetime.datetime.now()
+
+    start = today - dateutil.relativedelta.relativedelta(weeks=n)
+
+    return DateRange(start, today)
+

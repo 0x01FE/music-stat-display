@@ -2,7 +2,9 @@
 SELECT
 	artists.name artist_name,
 	albums.name album_name,
-	SUM("listen-events".time) time
+	SUM("listen-events".time) time,
+	albums.cover_art_url cover_art_url,
+	albums.spotify_id spotify_id
 FROM
 	"listen-events"
 INNER JOIN songs ON "listen-events".song=songs.id
@@ -20,7 +22,9 @@ ORDER BY
 SELECT
 	artists.name artist_name,
 	albums.name album_name,
-	SUM("listen-events".time) time
+	SUM("listen-events".time) time,
+	albums.cover_art_url cover_art_url,
+	albums.spotify_id spotify_id
 FROM
 	"listen-events"
 INNER JOIN songs ON "listen-events".song=songs.id
