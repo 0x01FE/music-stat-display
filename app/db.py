@@ -432,7 +432,7 @@ def get_top_skipped_songs(user_id : int, range : date_range.DateRange | None = N
     return top
 
 
-def get_top_played_artists(user_id : int, range : date_range.DateRange | None = None, top : int | None = None) -> list:
+def get_top_played_artists(user_id : int, range : date_range.DateRange | None = None, top : int | None = None, images : bool = True) -> list:
     dated = False
     args = [user_id]
     if range:
@@ -448,14 +448,25 @@ def get_top_played_artists(user_id : int, range : date_range.DateRange | None = 
     if top:
         results = results[:top]
 
-    top: list = []
+    top = []
     # Format Artist Name
     for artist in results:
         artist_name: str = artist[1].replace('-', ' ').title()
         artist_id: int = artist[0]
-        count: int = artist[2]
+        icon_url: str | None = artist[2]
+        plays: int = artist[4]
 
-        top.append((artist_name, artist_id, count))
+        if not icon_url and images:
+            spotify_id: str = artist[3]
+            icon_url = get_spotify_artist_image_url(spotify_id)
+
+
+        top.append({
+            "name" : artist_name,
+            "id" : artist_id,
+            "icon_url" : icon_url,
+            "plays" : plays
+        })
 
     return top
 

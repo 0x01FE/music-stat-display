@@ -41,7 +41,7 @@
             <div class="SummaryBlock">
                 <h2><u>Top Played Artists</u></h2>
                 {% for artist in top_played_artists %}
-                    <p>{{ loop.index }}. <a href="../../artists/{{ artist[1] }}">{{ artist[0] }}</a> : {{ artist[2] }} Plays</p>
+                    <p><img src="{{ artist.icon_url }}">{{ loop.index }}. <a href="../../artists/{{ artist.id }}">{{ artist.name }}</a> : {{ artist.plays }} Plays</p>
                 {% endfor %}
             </div>
             <div class="SummaryBlock">

@@ -109,29 +109,48 @@ def user_home(user : int):
     if not db.is_user_public(user) and accessing_user != user:
         return "This user's profile is not public!"
 
+    info = {}
+    info["artist_count"] = db.get_artist_count(user)
+    info["album_count"] = db.get_album_count(user)
+    info["song_count"] = db.get_song_count(user)
+
     today = datetime.datetime.today()
+    six_m_period = date_range.last_n_months(6)
+    one_m_period = date_range.last_n_months(1)
 
-    top_artists = db.get_top_artists(user, top=10)
-    top_albums = db.get_top_albums(user, top=10)
-    top_songs = db.get_top_songs(user, top=10)
+    times = {
+        "overall" : db.get_total_time(user).to_hour_and_seconds(),
+        "six_months" : db.get_total_time(user, six_m_period).to_hour_and_seconds(),
+        "one_month" : db.get_total_time(user, one_m_period).to_hour_and_seconds()
+    }
 
-    total_time = db.get_total_time(user).to_hour_and_seconds()
-
-    artist_count = db.get_artist_count(user)
-    album_count = db.get_album_count(user)
-    song_count = db.get_song_count(user)
-
+    periods = [
+        {
+            "name" : "all-time",
+            "top_artists" : db.get_top_artists(user, top=10),
+            "top_albums" : db.get_top_albums(user, top=10),
+            "top_songs" : db.get_top_songs(user, top=10)
+        },
+        {
+            "name" : "6m",
+            "top_artists" : db.get_top_artists(user, six_m_period, top=10),
+            "top_albums" : db.get_top_albums(user, six_m_period, top=10),
+            "top_songs" : db.get_top_songs(user, six_m_period, top=10)
+        },
+        {
+            "name" : "4w",
+            "top_artists" : db.get_top_artists(user, one_m_period, top=10),
+            "top_albums" : db.get_top_albums(user, one_m_period, top=10),
+            "top_songs" : db.get_top_songs(user, one_m_period, top=10)
+        }
+    ]
 
     return flask.render_template('user_home.html',
-                                 top_albums=top_albums,
-                                 top_songs=top_songs,
-                                 top_artists=top_artists,
+                                 info=info,
+                                 times=times,
+                                 periods=periods,
                                  year=today.year,
                                  month=today.month,
-                                 artist_count=artist_count,
-                                 total_time=total_time,
-                                 album_count=album_count,
-                                 song_count=song_count,
                                  display_name=display_name,
                                  user_pfp_url=user_pfp_url)
 
@@ -257,32 +276,6 @@ def songs_overview(user : int):
                                  overall=overall,
                                  six_months=six_months,
                                  one_month=one_month)
-
-@app.route('/<int:user>/month/<int:year>/<int:month>/')
-def month_overview(user : int, year : int, month : int):
-
-    period = date_range.DateRange()
-
-    if not period.get_range(year, month):
-        return "Invalid month or year."
-
-    top_artists = db.get_top_artists(user, period, top=5)
-    top_albums = db.get_top_albums(user, period, top=5)
-    top_songs = db.get_top_songs(user, period, top=5)
-
-    if not (total_time := db.get_total_time(user, period)):
-        return "No data for this month."
-    total_time = total_time.to_hour_and_seconds()
-
-    artist_count = db.get_artist_count(user, period)
-    album_count = db.get_album_count(user, period)
-    song_count = db.get_song_count(user, period)
-
-
-    links = (f"../../{year}/{month - 1}", f"../../{year}/{month + 1}")
-
-    return flask.render_template('month_overview.html', month_name=calendar.month_name[month], year=year, top_artists=top_artists, top_albums=top_albums, top_songs=top_songs, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
-
 
 @app.route('/<int:user>/biggraph/<int:artist>/')
 def big_artist_graph(user : int, artist : int):
