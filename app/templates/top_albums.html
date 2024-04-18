@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link id="style" rel="stylesheet" href="{{ url_for('static', filename='style-redo.css') }}">
+        <script src="{{ url_for('static', filename='theme-changer.js') }}"></script>
+        <script src="{{ url_for('static', filename='period.js') }}"></script>
+        <title>Top Albums</title>
+    </header>
+    <body>
+        <div id="TimePeriodSelectionBar" class="TimePeriodSelectionBar">
+            <h2>Time Period</h2>
+            <button id="b1" onclick="allTime(this.id)">All Time</button><br>
+            <button id="b2" onclick="sixMonths(this.id)">Past 6 Months</button><br>
+            <button id="b3" onclick="fourWeeks(this.id)">Past 4 Weeks</button>
+        </div>
+
+        <h1 class="Top-X-Header">Top Albums</h1>
+
+        <div id="all-time">
+            <div class="SummaryContainer">
+                <div class="SummaryBlock SingleSummaryBlock">
+                    {% for item in overall %}
+                        <p>{{ loop.index }}. {{ item.title }} by <a href="{{ item.artist_id }}">{{ item.artist_name }}</a> : {{ item.time[0] }} hours {{ item.time[1] }} minutes</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div id="6m">
+            <div class="SummaryContainer">
+                <div class="SummaryBlock SingleSummaryBlock">
+                    {% for item in six_months %}
+                        <p>{{ loop.index }}. {{ item.title }} by <a href="{{ item.artist_id }}">{{ item.artist_name }}</a> : {{ item.time[0] }} hours {{ item.time[1] }} minutes</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div id="4w">
+            <div class="SummaryContainer">
+                <div class="SummaryBlock SingleSummaryBlock">
+                    {% for item in one_month %}
+                        <p>{{ loop.index }}. {{ item.title }} by <a href="{{ item.artist_id }}">{{ item.artist_name }}</a> : {{ item.time[0] }} hours {{ item.time[1] }} minutes</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>

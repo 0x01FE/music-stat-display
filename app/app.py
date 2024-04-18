@@ -164,9 +164,23 @@ def settings_save():
 @app.route('/<int:user>/artists/')
 def artists_overview(user: int):
 
-    top_artists = db.get_top_artists(user)
+    # All Time
+    overall = db.get_top_artists(user, images=False)
 
-    return flask.render_template('artists_overview.html', top_artists=top_artists)
+    # Past 6 Months
+    period = date_range.last_n_months(6)
+
+    six_months = db.get_top_artists(user, period, images=False)
+
+    # Past 1 Month
+    period = date_range.last_n_months(1)
+
+    one_month = db.get_top_artists(user, period, images=False)
+
+    return flask.render_template('top_artists.html',
+                                 overall=overall,
+                                 six_months=six_months,
+                                 one_month=one_month)
 
 @app.route('/<int:user>/artists/<artist>/')
 def artist_overview(user: int, artist : int):
@@ -204,15 +218,45 @@ def artist_overview(user: int, artist : int):
 
 @app.route('/<int:user>/albums/')
 def albums_overview(user : int):
-    top_albums = db.get_top_albums(user, images=False)
 
-    return flask.render_template('albums_overview.html', top_albums=top_albums)
+    # All Time
+    overall = db.get_top_albums(user, images=False)
+
+    # Past 6 Months
+    period = date_range.last_n_months(6)
+
+    six_months = db.get_top_albums(user, period, images=False)
+
+    # Past 1 Month
+    period = date_range.last_n_months(1)
+
+    one_month = db.get_top_albums(user, period, images=False)
+
+    return flask.render_template('top_albums.html',
+                                 overall=overall,
+                                 six_months=six_months,
+                                 one_month=one_month)
 
 @app.route('/<int:user>/songs/')
 def songs_overview(user : int):
-    top_songs = db.get_top_songs(user, images=False)
 
-    return flask.render_template('songs_overview.html', top_songs=top_songs)
+    # All Time
+    overall = db.get_top_songs(user, images=False)
+
+    # Past 6 Months
+    period = date_range.last_n_months(6)
+
+    six_months = db.get_top_songs(user, period, images=False)
+
+    # Past 1 Month
+    period = date_range.last_n_months(1)
+
+    one_month = db.get_top_songs(user, period, images=False)
+
+    return flask.render_template('top_songs.html',
+                                 overall=overall,
+                                 six_months=six_months,
+                                 one_month=one_month)
 
 @app.route('/<int:user>/month/<int:year>/<int:month>/')
 def month_overview(user : int, year : int, month : int):
@@ -239,57 +283,6 @@ def month_overview(user : int, year : int, month : int):
 
     return flask.render_template('month_overview.html', month_name=calendar.month_name[month], year=year, top_artists=top_artists, top_albums=top_albums, top_songs=top_songs, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count)
 
-@app.route('/<int:user>/month/<int:year>/<int:month>/artists/<artist>/')
-def artist_month_overview(user : int, year : int, month : int, artist : int):
-
-    period = date_range.DateRange()
-
-    if not period.get_range(year, month):
-        return "Invalid month or year."
-
-    total_time = db.get_artist_total(user, artist, period).to_hour_and_seconds()
-    top_albums = db.get_artist_top_albums(user, artist, period)
-    top_songs = db.get_artist_top_songs(user, artist, period)
-
-    artist_name = db.get_artist_info(artist)
-
-    return flask.render_template('artist_month_overview.html', artist_name=artist_name, month_name=calendar.month_name[month], year=year, artist_listen_time=total_time, top_albums=top_albums, top_songs=top_songs)
-
-@app.route('/<int:user>/month/<int:year>/<int:month>/artists/')
-def artists_month_overview(user : int, year : int, month : int):
-
-    period = date_range.DateRange()
-
-    if not period.get_range(year, month):
-        return "Invalid month or year."
-
-    top_artists = db.get_top_artists(user, period, images=False)
-
-    return flask.render_template('artists_month_overview.html', top_artists=top_artists, month_name=calendar.month_name[month], year=year)
-
-@app.route('/<int:user>/month/<int:year>/<int:month>/albums/')
-def albums_month_overview(user : int, year : int, month : int):
-
-    period = date_range.DateRange()
-
-    if not period.get_range(year, month):
-        return "Invalid month or year."
-
-    top_albums = db.get_top_albums(user, period, images=False)
-
-    return flask.render_template('albums_month_overview.html', top_albums=top_albums, month_name=calendar.month_name[month], year=year)
-
-@app.route('/<int:user>/month/<int:year>/<int:month>/songs/')
-def songs_month_overview(user : int, year : int, month : int):
-
-    period = date_range.DateRange()
-
-    if not period.get_range(year, month):
-        return "Invalid month or year."
-
-    top_songs = db.get_top_songs(user, period, images=False)
-
-    return flask.render_template('songs_month_overview.html', top_songs=top_songs, month_name=calendar.month_name[month], year=year)
 
 @app.route('/<int:user>/biggraph/<int:artist>/')
 def big_artist_graph(user : int, artist : int):
@@ -310,19 +303,28 @@ def wrapped(user : int, year : int):
     top_albums = db.get_top_albums(user, period, top=10)
     top_songs = db.get_top_songs(user, period, top=10)
 
-    total_time = db.get_total_time(user, period)
-    total_time = total_time.to_hour_and_seconds()
+    stats = {}
 
-    artist_count = db.get_artist_count(user, period)
-    album_count = db.get_album_count(user, period)
-    song_count = db.get_song_count(user, period)
+    stats["time"] = db.get_total_time(user, period).to_hour_and_seconds()
+
+    stats["artist_count"] = db.get_artist_count(user, period)
+    stats["album_count"] = db.get_album_count(user, period)
+    stats["song_count"] = db.get_song_count(user, period)
 
     top_played_artists = db.get_top_played_artists(user, period, top=10)
     top_played_songs = db.get_top_played_songs(user, period, top=10)
 
     top_skipped_songs = db.get_top_skipped_songs(user, period, top=10)
 
-    return flask.render_template("wrapped.html", year=year, top_albums=top_albums, top_songs=top_songs, top_artists=top_artists, artist_count=artist_count, total_time=total_time, album_count=album_count, song_count=song_count, top_skipped_songs=top_skipped_songs, top_played_artists=top_played_artists, top_played_songs=top_played_songs)
+    return flask.render_template("wrapped.html",
+                                 stats=stats,
+                                 year=year,
+                                 top_albums=top_albums,
+                                 top_songs=top_songs,
+                                 top_artists=top_artists,
+                                 top_skipped_songs=top_skipped_songs,
+                                 top_played_artists=top_played_artists,
+                                 top_played_songs=top_played_songs)
 
 @app.route('/db/')
 def database():

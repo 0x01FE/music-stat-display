@@ -2,7 +2,7 @@
 <html lang="en">
     <header>
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <link id="style" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link id="style" rel="stylesheet" href="{{ url_for('static', filename='style-redo.css') }}">
         <script>
             let times = JSON.parse('{{ times | tojson }}');
         </script>
@@ -11,19 +11,20 @@
         <title>{{ artist_info.name }} overall</title>
     </header>
     <body>
-        <a href=".." style="position:absolute;"><u><< back</u></a>
+        <a href="../.." style="position:absolute;"><u><< back</u></a>
         <div class="ArtistHeaderContainer">
                 <img src="{{ artist_info.icon_url }}">
                 <h1>{{ artist_info.name }}</h1>
                 <span id="hours">{{ times.overall[0] }}</span> <b>hours</b> <span id="minutes">{{ times.overall[1] }}</span> <b>minutes</b>
         </div>
 
-        <div id="ArtistPeriodSelectionBar" class="ArtistPeriodSelectionBar">
+        <div id="TimePeriodSelectionBar" class="TimePeriodSelectionBar">
             <h2>Time Period</h2>
             <button id="b1" onclick="allTime(this.id)">All Time</button><br>
             <button id="b2" onclick="sixMonths(this.id)">Past 6 Months</button><br>
             <button id="b3" onclick="fourWeeks(this.id)">Past 4 Weeks</button>
         </div>
+
         <div id="all-time">
             <div class="SummaryContainer">
                 <div class="SummaryBlock">

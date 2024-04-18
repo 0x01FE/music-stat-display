@@ -15,8 +15,8 @@
     --header-link-color: hsl(0, 0%, 25%);
     --header-link-hover-color: hsl(0, 0%, 50%);
 
-    --body-text-size: 20px;
-    --body-text-color: black;
+    --body-text-size: 15px;
+    --body-text-color: #000;
     --cover-art-size: 50px;
 
     --border-display: hidden;
@@ -25,6 +25,10 @@
 
     --button-color: hsl(0, 0%, 75%);
     --selected-button-color: hsl(212, 60%, 58%);
+
+    --song-color: #000;
+    --album-color: #000;
+    --artist-color: #000;
 }
 
 body {
@@ -33,14 +37,6 @@ body {
     background-color: var(--background-color);
     font-size: var(--body-text-size);
     font-weight: 400;
-}
-
-.TopTen {
-    border-style: solid;
-    border-radius: 20px;
-    border-width: 5pt;
-    border-color: white;
-    padding: 20px;
 }
 
 h1, h2, h3 {
@@ -89,16 +85,6 @@ h1, h2, h3 {
     /* display:inline-block; */
     /* right: 50%; */
     width: 25%;
-}
-
-.BigTitleBlock {
-    font-weight: bold;
-    font-size: 30px;
-    padding: 15px;
-    border-style: dashed;
-    border-color: white;
-    margin: 5px;
-    text-align: center;
 }
 
 .Graphs {
@@ -167,8 +153,8 @@ h1, h2, h3 {
     margin-bottom: 0.25em;
 }
 
-.TopSongs {
-    justify-content: center;
+body .SingleSummaryBlock {
+    max-width: 60%;
 }
 
 .UserName {
@@ -190,23 +176,6 @@ h1, h2, h3 {
     height: 100%;
 }
 
-
-
-/* #Body div.Header2 {
-    padding-top: 10pt;
-    font-size: 18pt;
-}
-
-#Body div.Header2_u {
-    padding-top: 10pt;
-    font-size: 18pt;
-    text-decoration: underline;
-}
-
-#body div.TotalTime {
-    text-decoration: underline;
-} */
-
 a {
     color: var(--link-color);
     text-align: center;
@@ -227,21 +196,41 @@ a:hover {
     color: #8b8fc6;
 }
 
+.TimePeriodSelectionBar {
+    box-shadow: 3px -3px grey, 3px 3px grey;
 
-.Artist {
+    position: absolute;
+    top: 8em;
+    left: 0;
+    max-width: fit-content;
     text-align: center;
+    background-color: var(--secondary-color);
+
+    border-radius: 0 12.5% 12.5% 0;
+    padding: 0.5em;
 }
 
-.Block {
-    width: 40%;
-    display: inline-block;
-    vertical-align: text-top;
-    text-align: left;
-    border-style: solid;
-    border-color: white;
-    padding: 10px;
-    margin: 20px;
-    margin-inline: 40px;
+.TimePeriodSelectionBar button {
+    min-width: 10em;
+    border: none;
+    margin: 1px;
+
+    padding: 1em;
+    background-color: var(--button-color);
+}
+
+.TimePeriodSelectionBar button:hover {
+    margin: 0px;
+    border: 1px black solid;
+}
+
+body .selectedButton {
+    background-color: var(--selected-button-color);
+}
+
+.Top-X-Header {
+    text-align: center;
+    font-family: cyberpunkwaifus;
 }
 
 
@@ -262,34 +251,5 @@ a:hover {
     height: 250px;
     width: 250px;
     border-radius: 50%;
-}
-
-.ArtistPeriodSelectionBar {
-    position: absolute;
-    top: 8em;
-    max-width: fit-content;
-    text-align: center;
-    background-color: var(--secondary-color);
-
-    border-radius: 15%;
-    padding: 0.5em;
-}
-
-.ArtistPeriodSelectionBar button {
-    min-width: 100px;
-    border: none;
-    margin: 1px;
-
-    padding: 1em;
-    background-color: var(--button-color);
-}
-
-.ArtistPeriodSelectionBar button:hover {
-    margin: 0px;
-    border: 1px black solid;
-}
-
-body .selectedButton {
-    background-color: var(--selected-button-color);
 }
 
