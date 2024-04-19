@@ -20,9 +20,6 @@ function draw_graphs() {
 
 };
 
-document.onreadystatechange = function () {
-    if (document.readyState == "complete") {
-        graphs = document.getElementById("graphs");
-        let timer = setInterval(() => { draw_graphs(); }, 40);
-    }
-}
+addEventListener("DOMContentLoaded", (event) => {
+    graphs = document.getElementById("graphs");
+});

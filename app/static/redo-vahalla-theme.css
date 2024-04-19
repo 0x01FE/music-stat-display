@@ -7,20 +7,25 @@
 }
 
 :root {
-    --background-color: black;
+    --background-color: #000;
+    --secondary-color: hsl(245, 20%, 10%);
+    --box-shadow-color: hsl(240, 15%, 20%);
 
-    --link-color: hsl(274, 73%, 40%);
-    --link-hover-color: hsl(274, 100%, 46%);
+    --link-color: hsl(295, 74%, 63%);
+    --link-hover-color: hsl(295, 43%, 51%);
     --header-link-color: hsl(340, 86%, 50%);
     --header-link-hover-color: hsl(340, 100%, 62%);
 
-    --body-text-size: 20px;
+    --body-text-size: 15px;
     --body-text-color: white;
     --cover-art-size: 50px;
 
+    --button-color: hsl(245, 15%, 30%);
+    --selected-button-color: hsl(280, 80%, 20%);
+
     --border-display: hidden;
     --border-radius: 15px;
-    --border-color: hsla(0, 0%, 100%, 25%);
+    --border-color: hsla(240, 20%, 20%, 0.25);
 }
 
 body {
@@ -31,12 +36,8 @@ body {
     font-weight: 400;
 }
 
-.TopTen {
-    border-style: solid;
-    border-radius: 20px;
-    border-width: 5pt;
-    border-color: white;
-    padding: 20px;
+body button {
+    color: var(--body-text-color);
 }
 
 h1, h2, h3 {
@@ -53,6 +54,21 @@ h1, h2, h3 {
     border-style: var(--border-display);
     border-color: var(--border-color);
     border-radius: var(--border-radius);
+}
+
+.change-theme-button {
+    position: absolute;
+    top: 3.5em;
+    border: none;
+    text-decoration: none;
+    background-color: var(--button-color);
+    padding: 0.5em;
+    margin: 1px;
+}
+
+.change-theme-button:hover {
+    border: solid black 1px;
+    margin: 0;
 }
 
 .HeaderContainer h1 {
@@ -72,31 +88,6 @@ h1, h2, h3 {
     width: 25%;
 }
 
-.BigTitleBlock {
-    font-weight: bold;
-    font-size: 30px;
-    padding: 15px;
-    border-style: dashed;
-    border-color: white;
-    margin: 5px;
-    text-align: center;
-}
-
-.Graphs {
-    display: none;
-    text-align: center;
-    padding: 5px;
-}
-
-.Graphs header {
-    text-align: center;
-}
-
-.Graph {
-    display: inline-block;
-    padding: 15px;
-}
-
 .SummaryContainer {
     display: flex;
     flex-direction: row;
@@ -114,6 +105,8 @@ h1, h2, h3 {
     margin: 0 0.5em;
     padding: 1em;
 
+    max-width: 45%;
+
     line-height: 2em;
 
     border-style: var(--border-display);
@@ -124,7 +117,6 @@ h1, h2, h3 {
 .SummaryBlock h2 {
     text-align: center;
     font-size: 30px;
-    /* font-weight: 900; */
     font-weight: 100;
     font-family: cyberpunkwaifus;
 }
@@ -148,8 +140,8 @@ h1, h2, h3 {
     margin-bottom: 0.25em;
 }
 
-.TopSongs {
-    justify-content: center;
+body .SingleSummaryBlock {
+    max-width: 60%;
 }
 
 .UserName {
@@ -171,23 +163,6 @@ h1, h2, h3 {
     height: 100%;
 }
 
-
-
-/* #Body div.Header2 {
-    padding-top: 10pt;
-    font-size: 18pt;
-}
-
-#Body div.Header2_u {
-    padding-top: 10pt;
-    font-size: 18pt;
-    text-decoration: underline;
-}
-
-#body div.TotalTime {
-    text-decoration: underline;
-} */
-
 a {
     color: var(--link-color);
     text-align: center;
@@ -208,19 +183,75 @@ a:hover {
     color: #8b8fc6;
 }
 
+.TimePeriodSelectionBar {
+    box-shadow: 3px -3px var(--box-shadow-color), 3px 3px var(--box-shadow-color);
 
-.Artist {
+    position: absolute;
+    top: 8em;
+    left: 0;
+    max-width: fit-content;
+    text-align: center;
+    background-color: var(--secondary-color);
+
+    border-radius: 0 12.5% 12.5% 0;
+    padding: 0.5em;
+}
+
+.TimePeriodSelectionBar h2 {
+    font-family: cyberpunkwaifus;
+}
+
+.TimePeriodSelectionBar button {
+    min-width: 10em;
+    border: none;
+    margin: 1px;
+
+    padding: 1em;
+    background-color: var(--button-color);
+}
+
+.TimePeriodSelectionBar button:hover {
+    margin: 0px;
+    border: 1px black solid;
+}
+
+body .selectedButton {
+    background-color: var(--selected-button-color);
+}
+
+.Top-X-Header {
+    text-align: center;
+    font-family: cyberpunkwaifus;
+}
+
+
+/* ARTIST PAGE CSS */
+
+.ArtistHeaderContainer {
+    text-align: center;
+
+    margin: 0.5em 30%;
+    padding: 0.5em;
+
+    border-style: var(--border-display);
+    border-color: var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.ArtistHeaderContainer img {
+    height: 250px;
+    width: 250px;
+    border-radius: 50%;
+}
+
+/* Graphs */
+
+.Graphs {
     text-align: center;
 }
 
-.Block {
-    width: 40%;
-    display: inline-block;
-    vertical-align: text-top;
-    text-align: left;
-    border-style: solid;
-    border-color: white;
-    padding: 10px;
-    margin: 20px;
-    margin-inline: 40px;
+.GraphsSelect {
+    padding: 0.1em;
+    margin: 0.15em;
 }
+

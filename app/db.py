@@ -487,7 +487,7 @@ def get_top_played_songs(user_id : int, range : date_range.DateRange | None = No
     if top:
         results = results[:top]
 
-    top: list = []
+    top = []
     # Format Artist Name
     for song in results:
         artist_name: str = song[0].replace('-', ' ').title()

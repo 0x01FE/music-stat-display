@@ -8,6 +8,7 @@
         </script>
         <script src="{{ url_for('static', filename='theme-changer.js') }}"></script>
         <script src="{{ url_for('static', filename='artist.js') }}"></script>
+        <script src="{{ url_for('static', filename='graphs.js') }}"></script>
         <title>Overview - All Time</title>
     </header>
     <body>
@@ -61,6 +62,24 @@
                 </div>
             </div>
         {% endfor %}
+
+        <select id="graph-select" class="GraphsSelect" onchange="draw_graphs()">
+            <option value="DailyTimeGraph">Daily Listening Time</option>
+            <option value="WeeklyTimeGraph">Weekly Listening Time</option>
+            <option value="MonthlyTimeGraph">Monthly Listening Time</option>
+        </select>
+
+        <div id="graphs" class="Graphs">
+            <div id="DailyTimeGraph" style="display: block;">
+                <img src="/user-{{ info.id }}-daily.png">
+            </div>
+            <div id="WeeklyTimeGraph" style="display: none;">
+                <img src="/user-{{ info.id }}-weekly.png">
+            </div>
+            <div id="MonthlyTimeGraph" style="display: none;">
+                <img src="/user-{{ info.id }}-monthly.png">
+            </div>
+        </div>
 
     </body>
 </html>

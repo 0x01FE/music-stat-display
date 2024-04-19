@@ -87,21 +87,6 @@ h1, h2, h3 {
     width: 25%;
 }
 
-.Graphs {
-    display: none;
-    text-align: center;
-    padding: 5px;
-}
-
-.Graphs header {
-    text-align: center;
-}
-
-.Graph {
-    display: inline-block;
-    padding: 15px;
-}
-
 .SummaryContainer {
     display: flex;
     flex-direction: row;
@@ -251,5 +236,16 @@ body .selectedButton {
     height: 250px;
     width: 250px;
     border-radius: 50%;
+}
+
+/* Graphs */
+
+.Graphs {
+    text-align: center;
+}
+
+.GraphsSelect {
+    padding: 0.1em;
+    margin: 0.15em;
 }
 

@@ -113,6 +113,7 @@ def user_home(user : int):
     info["artist_count"] = db.get_artist_count(user)
     info["album_count"] = db.get_album_count(user)
     info["song_count"] = db.get_song_count(user)
+    info["id"] = user
 
     today = datetime.datetime.today()
     six_m_period = date_range.last_n_months(6)
@@ -144,6 +145,11 @@ def user_home(user : int):
             "top_songs" : db.get_top_songs(user, one_m_period, top=10)
         }
     ]
+
+    # Generate graphs
+    graphs.generate_daily_graph(user)
+    graphs.generate_weekly_graph(user)
+    graphs.generate_monthly_graph(user)
 
     return flask.render_template('user_home.html',
                                  info=info,

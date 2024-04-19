@@ -1,3 +1,4 @@
+import os
 import typing
 import datetime
 import dateutil.relativedelta
@@ -13,6 +14,28 @@ matplotlib.use("agg")
 matplotlib.font_manager.fontManager.addfont("./static/CyberpunkWaifus.ttf")
 matplotlib.pyplot.rcParams["figure.figsize"] = (12, 7)
 
+FILE_EXPIRATION_MINUTES = 15
+
+def build_path(time_frame : str, user_id : str) -> str:
+    return f'static/user-{user_id}-{time_frame}.png'
+
+# Check if file is too new to warrant a new graph.
+def is_old(path : str) -> bool:
+    try:
+        creation_time: float = os.path.getctime(path)
+
+        now: float = datetime.datetime.now().timestamp()
+
+        time_detla: float = now - creation_time
+
+        if time_detla >= (FILE_EXPIRATION_MINUTES * 60):
+            return True
+        else:
+            return False
+
+    # If no file is found, that's a good case for making a new one.
+    except FileNotFoundError:
+        return True
 
 def color_graph(title : str, ax : matplotlib.axes.Axes, plot : matplotlib.lines.Line2D) -> matplotlib.axes.Axes:
     # Graph Background
@@ -44,7 +67,12 @@ def color_graph(title : str, ax : matplotlib.axes.Axes, plot : matplotlib.lines.
 
 
 # Returns path to graph image (png)
-def generate_daily_graph(user_id : int) -> str:
+def generate_daily_graph(user_id : int) -> None:
+
+    save_path = build_path('daily', user_id)
+    if not is_old(save_path):
+        return
+
     now = datetime.datetime.now()
 
     totals = []
@@ -72,10 +100,15 @@ def generate_daily_graph(user_id : int) -> str:
     for i, txt in enumerate(totals):
         ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
 
-    fig.savefig("static/day.png", bbox_inches='tight')
+    fig.savefig(save_path, bbox_inches='tight')
 
 
-def generate_weekly_graph(user_id : int) -> str:
+def generate_weekly_graph(user_id : int) -> None:
+
+    save_path = build_path('weekly', user_id)
+    if not is_old(save_path):
+        return
+
     now = datetime.datetime.now()
 
     totals = []
@@ -103,10 +136,15 @@ def generate_weekly_graph(user_id : int) -> str:
     for i, txt in enumerate(totals):
         ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
 
-    fig.savefig("static/week.png", bbox_inches='tight')
+    fig.savefig(save_path, bbox_inches='tight')
 
 
-def generate_monthly_graph(user_id : int) -> str:
+def generate_monthly_graph(user_id : int) -> None:
+
+    save_path = build_path('monthly', user_id)
+    if not is_old(save_path):
+        return
+
     now = datetime.datetime.now()
 
     totals = []
@@ -133,7 +171,7 @@ def generate_monthly_graph(user_id : int) -> str:
     for i, txt in enumerate(totals):
         ax.annotate(txt, (dates[i], totals[i]), color="xkcd:powder blue")
 
-    fig.savefig("static/month.png")
+    fig.savefig(save_path)
 
 
 def generate_artist_graph(user_id : int, artist_id : int, ranges : list[date_range.DateRange], period : typing.Literal['d', 'w', 'm', 'yd']) -> str:
