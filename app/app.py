@@ -122,7 +122,7 @@ def user_home(user : int):
     times = {
         "overall" : db.get_total_time(user).to_hour_and_seconds(),
         "six_months" : db.get_total_time(user, six_m_period).to_hour_and_seconds(),
-        "one_month" : db.get_total_time(user, one_m_period).to_hour_and_seconds()
+        # "one_month" : db.get_total_time(user, one_m_period).to_hour_and_seconds()
     }
 
     periods = [
@@ -226,7 +226,9 @@ def artist_overview(user: int, artist : int):
 
     six_months = {}
 
-    times["six_months"] = db.get_artist_total(user, artist, period).to_hour_and_seconds()
+    times["six_months"] = db.get_artist_total(user, artist, period)
+    if times["six_months"]:
+        times["six_months"] = times["six_months"].to_hour_and_seconds()
     six_months["top_albums"] = db.get_artist_top_albums(user, artist, period)
     six_months["top_songs"] = db.get_artist_top_songs(user, artist, period)
 
@@ -235,7 +237,9 @@ def artist_overview(user: int, artist : int):
 
     one_month = {}
 
-    times["one_month"] = db.get_artist_total(user, artist, period).to_hour_and_seconds()
+    times["one_month"] = db.get_artist_total(user, artist, period)
+    if times["one_month"]:
+        times["one_month"] = times["one_month"].to_hour_and_seconds()
     one_month["top_albums"] = db.get_artist_top_albums(user, artist, period)
     one_month["top_songs"] = db.get_artist_top_songs(user, artist, period)
 
