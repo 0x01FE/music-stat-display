@@ -2,7 +2,7 @@ import datetime
 import calendar
 import dateutil.relativedelta
 
-DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+DB_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 class DateRange:
 
@@ -13,8 +13,17 @@ class DateRange:
         self.start = start
         self.end = end
 
+
+    # Formatting
     def to_str(self) -> tuple[str, str]:
-        return (self.start.strftime(DATE_FORMAT), self.end.strftime(DATE_FORMAT))
+        return (self.start.strftime(DB_DATE_FORMAT), self.end.strftime(DB_DATE_FORMAT))
+
+    def sstart(self) -> str:
+        return self.start.strftime(DB_DATE_FORMAT)
+
+    def send(self) -> str:
+        return self.end.strftime(DB_DATE_FORMAT)
+
 
     def get_range(self, year : int, month : int) -> bool:
 

@@ -597,3 +597,29 @@ def get_id(table : Literal["artists", "albums", "users"], name : str) -> int | N
     if results:
         return results[0][0]
     return None
+
+def get_mix_weights(user_id : int, period : date_range.DateRange, limit : int) -> list:
+
+    with open(SQL_DIR + 'mix_top_played.sql', 'r') as f:
+        data = f.read();
+    query = sqlparse.split(data)
+
+    with Opener() as (con, cur):
+        for q in query:
+            if q == query[2]:
+                cur.execute(q, (user_id, period.sstart(), period.send()))
+            elif q == query[-1]:
+                cur.execute(q, (limit,))
+            else:
+                cur.execute(q)
+        results = cur.fetchall()
+
+    r = []
+    for item in results:
+        r.append([item[3], item[-1]])
+
+    return r
+
+
+
+

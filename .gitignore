@@ -10,3 +10,4 @@ jackson/*
 *.sh
 .flask_session
 .cache
+*.json
