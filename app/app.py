@@ -44,6 +44,9 @@ app.config['SESSION_FILE_DIR'] = './data/.flask_session/'
 flask_session.Session(app)
 
 
+# Other
+LAST_PLAYLIST_NEGATIVE_WEIGHT = -0.5
+
 
 @app.route('/')
 def root():
@@ -415,17 +418,9 @@ def mix_playlist(user : int):
 
     output = ""
 
-    weights : list = db.get_mix_weights(user, date_range.last_n_months(6), 40) # Get some "older" stuff
-    add_weights(weights, db.get_mix_weights(user, date_range.last_n_months(1), 40)) # Get some newer stuff
-
-    # get some OLD stuff
-    period = date_range.last_n_months(18)
-
-    period.end = period.start + dateutil.relativedelta.relativedelta(months=6)
-    add_weights(weights, db.get_mix_weights(user, period, 20))
-
     api: spotipy.Spotify = flask.session['api']
     user_id: str = flask.session['user']['id']
+    playlist = []
 
 
     # Fetch playlist info
@@ -455,13 +450,28 @@ def mix_playlist(user : int):
             for song in r['items']:
                 if song['track']:
                     uris_to_delete.append(song['track']['uri'])
-                    negative_weights.append((song['track']['id'], -0.2))
+                    negative_weights.append((song['track']['id'], LAST_PLAYLIST_NEGATIVE_WEIGHT))
 
-            api.user_playlist_remove_all_occurrences_of_tracks(user_id, playlist_id, uris_to_delete)
-            add_weights(weights, negative_weights) # Lower the chance of using a song from the last playlist
+            if uris_to_delete:
+                api.user_playlist_remove_all_occurrences_of_tracks(user_id, playlist_id, uris_to_delete)
 
-    # Mix it prioritizing stuff with higher play counts
-    playlist = mix_songs(weights)
+    offset = 0
+    while len(playlist) <= 50:
+        weights = negative_weights
+
+        add_weights(weights, db.get_mix_weights(user, date_range.last_n_months(6), 40, offset)) # Get some "older" stuff
+        add_weights(weights, db.get_mix_weights(user, date_range.last_n_months(1), 40, offset)) # Get some newer stuff
+
+        # get some OLD stuff
+        period = date_range.last_n_months(18)
+
+        period.end = period.start + dateutil.relativedelta.relativedelta(months=6)
+        add_weights(weights, db.get_mix_weights(user, period, 20, offset))
+
+
+        # Mix it prioritizing stuff with higher play counts
+        playlist.extend(mix_songs(weights))
+        offset += 20
 
     for song in playlist:
         for i in song:
@@ -474,6 +484,7 @@ def mix_playlist(user : int):
     for song in playlist:
         uris.append(f'spotify:track:{song[0]}')
 
+    print(uris)
     api.playlist_add_items(playlist_id, uris)
 
     return output

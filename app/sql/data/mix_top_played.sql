@@ -35,4 +35,5 @@ GROUP BY
 	song_spotify_id
 ORDER BY
 	weight DESC
-LIMIT ?;
+LIMIT ?
+OFFSET ?;
