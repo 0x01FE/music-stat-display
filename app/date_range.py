@@ -99,3 +99,10 @@ def last_n_weeks(n : int) -> DateRange:
 
     return DateRange(start, today)
 
+def this_month() -> DateRange:
+    today = datetime.datetime.now()
+
+    start = datetime.datetime(today.year, today.month, 1)
+
+    return DateRange(start, today)
+

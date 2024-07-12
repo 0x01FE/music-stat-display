@@ -56,7 +56,6 @@ class Opener():
         self.con.commit()
         self.con.close()
 
-
 def get_spotify_artist_image_url(id: str) -> str | None:
     spotify_response = spotify.artist(id)
 
@@ -616,7 +615,7 @@ def get_mix_weights(user_id : int, period : date_range.DateRange, limit : int, o
 
     r = []
     for item in results:
-        r.append([item[1], item[3], item[-1]])
+        r.append((item[1], item[3], item[-1]))
 
     return r
 

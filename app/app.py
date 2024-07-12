@@ -2,6 +2,7 @@ import dateutil.relativedelta
 import datetime
 import random
 import configparser
+import itertools
 import calendar
 import os
 import base64
@@ -421,6 +422,7 @@ def mix_playlist(user : int):
     api: spotipy.Spotify = flask.session['api']
     user_id: str = flask.session['user']['id']
     playlist = []
+    negative_weights = []
 
 
     # Fetch playlist info
@@ -446,18 +448,17 @@ def mix_playlist(user : int):
 
         if r['items']:
             uris_to_delete = []
-            negative_weights = []
             for song in r['items']:
                 if song['track']:
                     uris_to_delete.append(song['track']['uri'])
-                    negative_weights.append((song['track']['id'], LAST_PLAYLIST_NEGATIVE_WEIGHT))
+                    negative_weights.append((None, song['track']['id'], LAST_PLAYLIST_NEGATIVE_WEIGHT))
 
             if uris_to_delete:
                 api.user_playlist_remove_all_occurrences_of_tracks(user_id, playlist_id, uris_to_delete)
 
     offset = 0
     while len(playlist) <= 50:
-        weights = negative_weights
+        weights = negative_weights if negative_weights else []
 
         add_weights(weights, db.get_mix_weights(user, date_range.last_n_months(6), 40, offset)) # Get some "older" stuff
         add_weights(weights, db.get_mix_weights(user, date_range.last_n_months(1), 40, offset)) # Get some newer stuff
@@ -482,9 +483,12 @@ def mix_playlist(user : int):
 
     uris = []
     for song in playlist:
-        uris.append(f'spotify:track:{song[0]}')
+        uris.append(f'spotify:track:{song[1]}')
 
     print(uris)
+    if len(uris) > 99:
+        uris = uris[:99]
+
     api.playlist_add_items(playlist_id, uris)
 
     return output
@@ -495,12 +499,18 @@ def add_weights(weights1: list, weights2: list) -> list:
     for a in range(0, len(weights2)):
         found = False
         for b in range(0, len(weights1)):
-            if weights1[b][0] == weights2[a][0]:
-                weights1[b][1] += weights2[a][1]
+            if weights1[b][1] == weights2[a][1]:
+                weights1.append((weights1[b][1], weights1[b][-1] + weights2[a][-1]))
+                weights1.pop(b)
+                weights2.pop(a)
                 found = True
 
         if not found:
             weights1.append(weights2[a])
+
+    # Remove dupes
+    weights1.sort()
+    weights1 = list(k for k, _ in itertools.groupby(weights1))
 
     return weights1
 
