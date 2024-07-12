@@ -37,3 +37,8 @@ After that configure the example docker compose file in the repo and run,
 docker compose up
 ```
 Add the -d flag if you want it to run in the background.
+
+
+# Required Environment Variables
+env=DEV or PROD
+

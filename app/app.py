@@ -29,7 +29,15 @@ csrf.init_app(app)
 
 # App Setup
 config = configparser.ConfigParser()
-config.read("config.ini")
+
+dev = False
+if 'env' in os.environ:
+    dev = os.environ['env'] == 'DEV'
+
+if dev:
+    config.read("config-dev.ini")
+else:
+    config.read("config.ini")
 
 templates_path = config['PATHES']['templates']
 DATABASE = config['PATHES']['DATABASE']
@@ -530,7 +538,7 @@ def mix_songs(weights : list) -> list:
 
 if __name__ == '__main__':
     if 'env' in os.environ:
-        if os.environ['env'] == 'DEV':
+        if dev:
             app.run(port=PORT)
         else:
             waitress.serve(app, host='0.0.0.0', port=PORT)

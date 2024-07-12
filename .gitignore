@@ -1,6 +1,6 @@
 __pycache__
 *.code-workspace
-config.ini
+*.ini
 reports/
 reports/*
 .vscode
