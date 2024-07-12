@@ -11,7 +11,7 @@ import date_range
 import listen_time
 
 matplotlib.use("agg")
-matplotlib.font_manager.fontManager.addfont("./static/CyberpunkWaifus.ttf")
+matplotlib.font_manager.fontManager.addfont("app/static/CyberpunkWaifus.ttf")
 matplotlib.pyplot.rcParams["figure.figsize"] = (12, 7)
 
 FILE_EXPIRATION_MINUTES = 15

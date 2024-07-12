@@ -3,10 +3,12 @@ import datetime
 import random
 import configparser
 import itertools
+import logging
 import calendar
 import os
 import base64
 import json
+import sys
 
 
 import flask
@@ -22,6 +24,12 @@ import date_range
 import graphs
 from user import User
 
+# Logging Setup
+
+FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+logging.basicConfig(filename='/data/log-dev.log', encoding='utf-8', level=logging.DEBUG, format=FORMAT)
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
 app = flask.Flask(__name__, static_url_path='', static_folder='static')
 
 csrf = flask_wtf.csrf.CSRFProtect()
@@ -32,8 +40,10 @@ config = configparser.ConfigParser()
 
 dev = False
 if 'env' in os.environ:
+    logging.info(f"Selected ENV: {os.environ['env']}")
     dev = os.environ['env'] == 'DEV'
 
+logging.info(f"DEV: {dev}")
 if dev:
     config.read("config-dev.ini")
 else:
@@ -537,10 +547,4 @@ def mix_songs(weights : list) -> list:
 
 
 if __name__ == '__main__':
-    if 'env' in os.environ:
-        if dev:
-            app.run(port=PORT)
-        else:
-            waitress.serve(app, host='0.0.0.0', port=PORT)
-    else:
-        waitress.serve(app, host='0.0.0.0', port=PORT)
+    waitress.serve(app, host='0.0.0.0', port=PORT)

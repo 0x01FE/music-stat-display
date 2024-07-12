@@ -11,9 +11,19 @@ import sqlparse
 import listen_time
 import date_range
 
+# Config Setup
 config = configparser.ConfigParser()
-config.read("config.ini")
 
+dev = False
+if 'env' in os.environ:
+    dev = os.environ['env'] == 'DEV'
+
+if dev:
+    config.read("config-dev.ini")
+else:
+    config.read("config.ini")
+
+# Spotipy Setup
 CLIENT_ID = config["SPOTIFY"]["CLIENT_ID"]
 CLIENT_SECRET = config["SPOTIFY"]["CLIENT_SECRET"]
 REDIRECT_URI = config["SPOTIFY"]["REDIRECT_URI"]
@@ -31,10 +41,10 @@ SQL_DIR = config['PATHES']['SQL']
 QUERIES = {}
 
 # Get SQL Files
-for sql_file in os.listdir(SQL_DIR):
+for sql_file in os.listdir(SQL_DIR + 'data/'):
     file_name = sql_file.split('.')[0]
 
-    with open(SQL_DIR + sql_file, 'r') as f:
+    with open(SQL_DIR + 'data/' + sql_file, 'r') as f:
         raw_data = f.read()
 
     # SQLparse is used because there are multiple queries in each file + comments
@@ -500,7 +510,7 @@ def get_top_played_songs(user_id : int, range : date_range.DateRange | None = No
 
 
 def add_user(display_name : str, user_spotify_id : str) -> None:
-    with open('./sql/user/add_user.sql', 'r') as f:
+    with open(SQL_DIR + 'user/add_user.sql', 'r') as f:
         query = f.read()
 
     with Opener() as (con, cur):
@@ -508,7 +518,7 @@ def add_user(display_name : str, user_spotify_id : str) -> None:
 
 
 def user_exists(user_spotify_id : str) -> bool:
-    with open('./sql/user/user_exists.sql', 'r') as f:
+    with open(SQL_DIR + 'user/user_exists.sql', 'r') as f:
         query = f.read()
 
     with Opener() as (con, cur):
@@ -519,7 +529,7 @@ def user_exists(user_spotify_id : str) -> bool:
     return bool(results)
 
 def get_user_id(user_spotify_id : str) -> int | None:
-    with open('./sql/user/user_exists.sql', 'r') as f:
+    with open(SQL_DIR + 'user/user_exists.sql', 'r') as f:
         query = f.read()
 
     with Opener() as (con, cur):
@@ -530,7 +540,7 @@ def get_user_id(user_spotify_id : str) -> int | None:
     return results[0][0]
 
 def is_user_public(user_id : int) -> bool | None:
-    with open('./sql/user/get_user_by_id.sql', 'r') as f:
+    with open(SQL_DIR + 'user/get_user_by_id.sql', 'r') as f:
         query = f.read()
 
     with Opener() as (con, cur):
@@ -541,7 +551,7 @@ def is_user_public(user_id : int) -> bool | None:
     return bool(results[0][3])
 
 def update_public(spotify_id : str, public : bool) -> None:
-    with open('./sql/user/update_public.sql', 'r') as f:
+    with open(SQL_DIR + 'user/update_public.sql', 'r') as f:
         query = f.read()
 
     with Opener() as (con, cur):
