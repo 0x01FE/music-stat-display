@@ -26,7 +26,7 @@ spotify = spotipy.Spotify(client_credentials_manager=spotipy.oauth2.SpotifyClien
 
 DATABASE = config['PATHES']['DATABASE']
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-SQL_DIR = "./sql/data/"
+SQL_DIR = config['PATHES']['SQL']
 
 QUERIES = {}
 

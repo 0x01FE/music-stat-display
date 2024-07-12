@@ -1,5 +1,6 @@
-
+import configparser
 import random
+import os
 
 import db
 import query
@@ -9,7 +10,18 @@ import date_range
 
 MAX_ARTIST_SONGS = 7
 
-SQL_PATH = "./sql/"
+config = configparser.ConfigParser()
+
+dev = False
+if 'env' in os.environ:
+    dev = os.environ['env'] == 'DEV'
+
+if dev:
+    config.read("config-dev.ini")
+else:
+    config.read("config.ini")
+
+SQL_DIR = config['PATHES']['SQL']
 
 
 
@@ -30,11 +42,11 @@ def alt_mix(user_id : int) -> list:
     period = date_range.this_month()
 
     # Set Up queries
-    q = query.Query(SQL_PATH + 'data/top_artists_weight.sql')
+    q = query.Query(SQL_DIR + 'data/top_artists_weight.sql')
 
     args = {2 : (user_id, period.sstart(), period.send())}
 
-    top_artist_songs_q = query.Query(SQL_PATH + 'data/top_artist_songs.sql')
+    top_artist_songs_q = query.Query(SQL_DIR + 'data/top_artist_songs.sql')
 
     top_artists = q.execute(args)
 
