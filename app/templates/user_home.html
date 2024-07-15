@@ -22,9 +22,9 @@
             <a href="./month/{{ year }}/{{ month }}/"><u>Check this month's stats</u></a>
         </div>
 
-        {% if display_name != None %}
-            <div class="UserPfp"><a href="/settings/"><img src="{{ user_pfp_url }}"></a></div>
-            <div class="UserName"><a href="/settings/">{{ display_name }}</a></div>
+        {% if user_info != None %}
+            <div class="UserPfp"><a href="/settings/"><img src="{{ user_info.pfp_url }}"></a></div>
+            <div class="UserName"><a href="/settings/">{{ user_info.display_name }}</a></div>
         {% endif %}
 
 

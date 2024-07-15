@@ -1,13 +1,17 @@
 import os
 import typing
+import logging
 import datetime
 import dateutil.relativedelta
+
+# Mute matplot lib debug logs
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
 import matplotlib
 import matplotlib.pyplot
 
 import db
-import date_range
+import daterange
 import listen_time
 
 matplotlib.use("agg")
@@ -81,7 +85,7 @@ def generate_daily_graph(user_id : int) -> None:
     for i in range(1, 9):
         start = now - dateutil.relativedelta.relativedelta(days=i)
         end = now - dateutil.relativedelta.relativedelta(days=i-1)
-        time = db.get_total_time(user_id, date_range.DateRange(start, end))
+        time = db.get_total_time(user_id, daterange.DateRange(start, end))
 
         if not time:
             time = listen_time.ListenTime(0)
@@ -117,7 +121,7 @@ def generate_weekly_graph(user_id : int) -> None:
     for i in range(1, 9):
         start = now - dateutil.relativedelta.relativedelta(weeks=i)
         end = now - dateutil.relativedelta.relativedelta(weeks=i-1)
-        time = db.get_total_time(user_id, date_range.DateRange(start, end))
+        time = db.get_total_time(user_id, daterange.DateRange(start, end))
 
         if not time:
             time = listen_time.ListenTime(0)
@@ -152,7 +156,7 @@ def generate_monthly_graph(user_id : int) -> None:
     for i in range(1, 13):
         start = now - dateutil.relativedelta.relativedelta(months=i) # Why does normal timedelta not support months?
         end = now - dateutil.relativedelta.relativedelta(months=i-1)
-        time = db.get_total_time(user_id, date_range.DateRange(start, end))
+        time = db.get_total_time(user_id, daterange.DateRange(start, end))
 
         if not time:
             break
@@ -174,7 +178,7 @@ def generate_monthly_graph(user_id : int) -> None:
     fig.savefig(save_path)
 
 
-def generate_artist_graph(user_id : int, artist_id : int, ranges : list[date_range.DateRange], period : typing.Literal['d', 'w', 'm', 'yd']) -> str:
+def generate_artist_graph(user_id : int, artist_id : int, ranges : list[daterange.DateRange], period : typing.Literal['d', 'w', 'm', 'yd']) -> str:
 
     match period:
         case "d":

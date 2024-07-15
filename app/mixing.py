@@ -4,7 +4,7 @@ import os
 
 import db
 import query
-import date_range
+import daterange
 
 
 
@@ -39,7 +39,7 @@ Mixing Algo:
 def alt_mix(user_id : int) -> list:
 
     # Get top artists for the month
-    period = date_range.this_month()
+    period = daterange.this_month()
 
     # Set Up queries
     q = query.Query(SQL_DIR + 'data/top_artists_weight.sql')

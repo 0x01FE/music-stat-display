@@ -13,3 +13,4 @@ jackson/*
 *.json
 data
 *.log
+!.attachments/*.png
