@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link id="style" rel="stylesheet" href="{{ url_for('static', filename='style-redo.css') }}">
+        <script src="{{ url_for('static', filename='theme-changer.js') }}"></script>
+        <title>Overview - {{ month_name }} {{ year }}</title>
+    </header>
+    <body>
+        <button class="change-theme-button" type="button" onclick="changeTheme()">Swap Theme</button>
+        <div class="HeaderContainer">
+            <h1>{{ month_name }} {{ year }}</h1>
+            <span id="hours">{{ times[0] }}</span> <b>hours</b> <span id="minutes">{{ times[1] }}</span> <b>minutes</b>
+            {{ info.artist_count }} <b>Artists</b><br>
+            {{ info.album_count }} <b>Albums</b><br>
+            {{ info.song_count }} <b>Songs</b><br>
+        </div>
+
+        {% if display_name != None %}
+            <div class="UserPfp"><a href="/settings/"><img src="{{ user_pfp_url }}"></a></div>
+            <div class="UserName"><a href="/settings/">{{ display_name }}</a></div>
+        {% endif %}
+
+        <div class="SummaryContainer">
+            <div class="SummaryBlock">
+                <h2><a href="./artists/"><u>Top Artists</u></a></h2>
+                {% for artist in top.artists %}
+                    <p><img src="{{ artist.icon_url }}">{{ loop.index }}. <a href="./artists/{{ artist.id }}">{{ artist.name }}</a> : {{ artist.time[0] }} hours {{ artist.time[1] }} minutes</p>
+                {% endfor %}
+            </div>
+            <div class="SummaryBlock">
+                <h2><a href="./albums/"><u>Top Albums</u></a></h2>
+                {% for album in top.albums %}
+                    <p><img src="{{ album.cover_art_url }}">{{ loop.index }}. {{ album.title }} by <a href="./artists/{{ album.artist_id }}">{{ album.artist_name }}</a>: {{ album.time[0] }} hours {{ album.time[1] }} minutes</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="SummaryContainer">
+            <div class="SummaryBlock">
+                <h2><a href="./songs/"><u>Top Songs</u></a></h2>
+                {% for song in top.songs %}
+                    <p><img src="{{ song.cover_art_url }}">{{ loop.index }}. {{ song.name }} <u>by</u> <a href="./artists/{{ song.artist_id }}">{{ song.artist_name }}</a>: {{ song.time[0] }} hours {{ song.time[1] }} minutes</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </body>
+</html>

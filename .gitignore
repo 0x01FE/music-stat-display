@@ -11,3 +11,5 @@ jackson/*
 .flask_session
 .cache
 *.json
+data
+*.log

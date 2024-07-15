@@ -27,7 +27,7 @@ from user import User
 # Logging Setup
 
 FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
-logging.basicConfig(filename='/data/log-dev.log', encoding='utf-8', level=logging.DEBUG, format=FORMAT)
+logging.basicConfig(filename='data/log-dev.log', encoding='utf-8', level=logging.DEBUG, format=FORMAT)
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 app = flask.Flask(__name__, static_url_path='', static_folder='static')
@@ -59,7 +59,7 @@ SCOPES = config["SPOTIFY"]["SCOPES"]
 # Session Setup
 app.config['SECRET_KEY'] = base64.b64decode(config["FLASK"]["SECRET"])
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = './data/.flask_session/'
+app.config['SESSION_FILE_DIR'] = 'app/data/.flask_session/'
 flask_session.Session(app)
 
 
@@ -318,6 +318,56 @@ def songs_overview(user : int):
                                  overall=overall,
                                  six_months=six_months,
                                  one_month=one_month)
+
+@app.route('/<int:user>/month/<int:year>/<int:month>/')
+def month_overview(user : int, year : int, month : int):
+
+    TOP_N = 10
+
+    # Check if this user should be accessed
+    if 'user' in flask.session:
+        accessing_user = db.get_user_id(flask.session['user']['id'])
+        display_name = flask.session['user']['display_name']
+        user_pfp_url = flask.session['user']['images'][0]['url']
+
+    else:
+        accessing_user = None
+        display_name = None
+        user_pfp_url = None
+
+    if not db.is_user_public(user) and accessing_user != user:
+        return "This user's profile is not public!"
+
+    period = date_range.DateRange()
+
+    if not period.get_range(year, month):
+        return "Invalid month or year"
+
+    top = {}
+
+    top["artists"] = db.get_top_artists(user, period, top=TOP_N)
+    top["albums"] = db.get_top_albums(user, period, top=TOP_N)
+    top["songs"] = db.get_top_songs(user, period, top=TOP_N)
+
+    if not (total_time := db.get_total_time(user, period)):
+        return "No data for this month"
+    total_time = total_time.to_hour_and_seconds()
+
+    info = {}
+
+    info["artist_count"] = db.get_artist_count(user, period)
+    info["album_count"] = db.get_album_count(user, period)
+    info["song_count"] = db.get_song_count(user, period)
+
+    return flask.render_template("user_monthly_overview.html",
+                                 month_name=calendar.month_name[month],
+                                 year=year,
+                                 top=top,
+                                 info=info,
+                                 times=total_time,
+                                 display_name=display_name,
+                                 user_pfp_url=user_pfp_url)
+
 
 @app.route('/<int:user>/biggraph/<int:artist>/')
 def big_artist_graph(user : int, artist : int):
