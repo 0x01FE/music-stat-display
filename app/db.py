@@ -3,6 +3,7 @@ import configparser
 import typing
 import collections
 import os
+import logging
 from typing import Literal
 
 import spotipy
@@ -10,6 +11,8 @@ import sqlparse
 
 import listen_time
 import date_range
+
+logger = logging.getLogger(__name__)
 
 # Config Setup
 config = configparser.ConfigParser()
@@ -67,6 +70,8 @@ class Opener():
         self.con.close()
 
 def get_spotify_artist_image_url(id: str) -> str | None:
+    logging.info(f"Getting image for artist {id}...")
+
     spotify_response = spotify.artist(id)
 
     if spotify_response["images"]:
@@ -83,6 +88,7 @@ def get_spotify_artist_image_url(id: str) -> str | None:
     return image_url
 
 def get_spotify_album_image_url(id: str) -> str | None:
+    logging.info(f"Getting image for album {id}")
 
     spotify_response = spotify.album(id)
 
@@ -628,7 +634,6 @@ def get_mix_weights(user_id : int, period : date_range.DateRange, limit : int, o
         r.append((item[1], item[3], item[-1]))
 
     return r
-
 
 
 

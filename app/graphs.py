@@ -17,7 +17,7 @@ matplotlib.pyplot.rcParams["figure.figsize"] = (12, 7)
 FILE_EXPIRATION_MINUTES = 15
 
 def build_path(time_frame : str, user_id : str) -> str:
-    return f'static/user-{user_id}-{time_frame}.png'
+    return f'app/static/user-{user_id}-{time_frame}.png'
 
 # Check if file is too new to warrant a new graph.
 def is_old(path : str) -> bool:
@@ -220,4 +220,4 @@ def generate_artist_graph(user_id : int, artist_id : int, ranges : list[date_ran
     else:
         fig.set_size_inches(12, 7)
 
-    fig.savefig(f"static/{artist_id}-{file_name}.png")
+    fig.savefig(f"app/static/{artist_id}-{file_name}.png")

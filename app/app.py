@@ -119,13 +119,18 @@ def logout():
 @app.route('/<int:user>/')
 def user_home(user : int):
 
+    logging.info("Request for user home page")
+
     # Check if this user should be accessed
     if 'user' in flask.session:
         accessing_user = db.get_user_id(flask.session['user']['id'])
         display_name = flask.session['user']['display_name']
         user_pfp_url = flask.session['user']['images'][0]['url']
 
+        logging.info(f"User is logged in as {display_name}")
+
     else:
+        logging.info("User is _NOT_ logged in")
         accessing_user = None
         display_name = None
         user_pfp_url = None
@@ -133,6 +138,7 @@ def user_home(user : int):
     if not db.is_user_public(user) and accessing_user != user:
         return "This user's profile is not public!"
 
+    logging.info("Geting music stat counts...")
     info = {}
     info["artist_count"] = db.get_artist_count(user)
     info["album_count"] = db.get_album_count(user)
@@ -143,12 +149,14 @@ def user_home(user : int):
     six_m_period = date_range.last_n_months(6)
     one_m_period = date_range.last_n_months(1)
 
+    logging.info("Getting times...")
     times = {
         "overall" : db.get_total_time(user).to_hour_and_seconds(),
         "six_months" : db.get_total_time(user, six_m_period).to_hour_and_seconds(),
         # "one_month" : db.get_total_time(user, one_m_period).to_hour_and_seconds()
     }
 
+    logging.info("Getting top everything")
     periods = [
         {
             "name" : "all-time",
@@ -320,24 +328,29 @@ def big_artist_graph(user : int, artist : int):
 
 @app.route('/<int:user>/wrapped/<int:year>/')
 def wrapped(user : int, year : int):
+    logging.info("User asking for wrapped endpoint")
 
     end = datetime.datetime.strptime(f"12-31-{year}", "%m-%d-%Y")
     start = end - dateutil.relativedelta.relativedelta(years=1)
 
     period = date_range.DateRange(start, end)
 
+    logging.debug("Getting top info")
     top_artists = db.get_top_artists(user, period, top=10)
     top_albums = db.get_top_albums(user, period, top=10)
     top_songs = db.get_top_songs(user, period, top=10)
 
     stats = {}
 
+    logging.debug("Getting total time")
     stats["time"] = db.get_total_time(user, period).to_hour_and_seconds()
 
+    logging.debug("Getting counts")
     stats["artist_count"] = db.get_artist_count(user, period)
     stats["album_count"] = db.get_album_count(user, period)
     stats["song_count"] = db.get_song_count(user, period)
 
+    logging.debug("Getting top played things?")
     top_played_artists = db.get_top_played_artists(user, period, top=10)
     top_played_songs = db.get_top_played_songs(user, period, top=10)
 
@@ -510,6 +523,11 @@ def mix_playlist(user : int):
     api.playlist_add_items(playlist_id, uris)
 
     return output
+
+@app.route('/health')
+def health():
+    logging.info('yep')
+    return 'healthy for now :)'
 
 def add_weights(weights1: list, weights2: list) -> list:
 

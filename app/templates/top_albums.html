@@ -21,7 +21,7 @@
             <div class="SummaryContainer">
                 <div class="SummaryBlock SingleSummaryBlock">
                     {% for item in overall %}
-                        <p>{{ loop.index }}. {{ item.title }} by <a href="{{ item.artist_id }}">{{ item.artist_name }}</a> : {{ item.time[0] }} hours {{ item.time[1] }} minutes</p>
+                        <p>{{ loop.index }}. {{ item.title }} by <a href="../artist/{{ item.artist_id }}/">{{ item.artist_name }}</a> : {{ item.time[0] }} hours {{ item.time[1] }} minutes</p>
                     {% endfor %}
                 </div>
             </div>
@@ -31,7 +31,7 @@
             <div class="SummaryContainer">
                 <div class="SummaryBlock SingleSummaryBlock">
                     {% for item in six_months %}
-                        <p>{{ loop.index }}. {{ item.title }} by <a href="{{ item.artist_id }}">{{ item.artist_name }}</a> : {{ item.time[0] }} hours {{ item.time[1] }} minutes</p>
+                        <p>{{ loop.index }}. {{ item.title }} by <a href="../artist/{{ item.artist_id }}/">{{ item.artist_name }}</a> : {{ item.time[0] }} hours {{ item.time[1] }} minutes</p>
                     {% endfor %}
                 </div>
             </div>
@@ -41,7 +41,7 @@
             <div class="SummaryContainer">
                 <div class="SummaryBlock SingleSummaryBlock">
                     {% for item in one_month %}
-                        <p>{{ loop.index }}. {{ item.title }} by <a href="{{ item.artist_id }}">{{ item.artist_name }}</a> : {{ item.time[0] }} hours {{ item.time[1] }} minutes</p>
+                        <p>{{ loop.index }}. {{ item.title }} by <a href="../artist/{{ item.artist_id }}/">{{ item.artist_name }}</a> : {{ item.time[0] }} hours {{ item.time[1] }} minutes</p>
                     {% endfor %}
                 </div>
             </div>
