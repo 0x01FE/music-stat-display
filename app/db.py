@@ -1,20 +1,17 @@
-import sqlite3
 import configparser
-import typing
-import collections
-import os
+import sqlite3
 import logging
-from typing import Literal
+import typing
+import os
 
-# Mute Spotipy Logs
-logging.getLogger('spotipy').setLevel(logging.WARNING)
-import spotipy
 import sqlparse
+import spotipy
 
 import listen_time
 import daterange
 
 logger = logging.getLogger(__name__)
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
 # Config Setup
 config = configparser.ConfigParser()
@@ -39,9 +36,9 @@ os.environ["SPOTIPY_REDIRECT_URI"] = REDIRECT_URI
 
 spotify = spotipy.Spotify(client_credentials_manager=spotipy.oauth2.SpotifyClientCredentials())
 
-DATABASE = config['PATHES']['DATABASE']
+DATABASE = config['DATABASE']['PATH']
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-SQL_DIR = config['PATHES']['SQL']
+SQL_DIR = config['DATABASE']['QUERIES']
 
 QUERIES = {}
 
@@ -72,7 +69,7 @@ class Opener():
         self.con.close()
 
 def get_spotify_artist_image_url(id: str) -> str | None:
-    logging.info(f"Getting image for artist {id}...")
+    logger.info(f"Getting image for artist {id}...")
 
     spotify_response = spotify.artist(id)
 
@@ -90,7 +87,7 @@ def get_spotify_artist_image_url(id: str) -> str | None:
     return image_url
 
 def get_spotify_album_image_url(id: str) -> str | None:
-    logging.info(f"Getting image for album {id}")
+    logger.info(f"Getting image for album {id}")
 
     spotify_response = spotify.album(id)
 
@@ -108,7 +105,7 @@ def get_spotify_album_image_url(id: str) -> str | None:
 
 
 
-def get_top_artists(user_id : int, range : daterange.DateRange | None = None, top : typing.Optional[int] = None, images : bool = True) -> list[dict]:
+def get_top_artists(user_id: int, range: daterange.DateRange | None = None, top: int | None = None, images: bool | None = True) -> list[dict]:
     dated = False
     args = [user_id]
     if range:
@@ -148,7 +145,7 @@ def get_top_artists(user_id : int, range : daterange.DateRange | None = None, to
 
 
 
-def get_top_albums(user_id : int, range : daterange.DateRange | None = None, top : typing.Optional[int] = None, images : bool = True) -> list[dict]:
+def get_top_albums(user_id: int, range: daterange.DateRange | None = None, top: int | None = None, images: bool | None = True) -> list[dict]:
     dated = False
     args = [user_id]
     if range:
@@ -189,7 +186,7 @@ def get_top_albums(user_id : int, range : daterange.DateRange | None = None, top
 
 
 
-def get_top_songs(user_id : int, range : daterange.DateRange | None = None, top : int | None = None, images : bool = True) -> dict:
+def get_top_songs(user_id: int, range: daterange.DateRange | None = None, top: int | None = None, images: bool | None = True) -> dict:
     dated = False
     args = [user_id]
     if range:
@@ -230,7 +227,7 @@ def get_top_songs(user_id : int, range : daterange.DateRange | None = None, top 
 
 
 
-def get_total_time(user_id : int, range : daterange.DateRange | None = None) -> listen_time.ListenTime | None:
+def get_total_time(user_id: int, range: daterange.DateRange | None = None) -> listen_time.ListenTime | None:
     dated = False
     args = [user_id]
     if range:
@@ -250,7 +247,7 @@ def get_total_time(user_id : int, range : daterange.DateRange | None = None) -> 
 
 
 
-def get_artist_count(user_id : int, range : daterange.DateRange | None = None) -> int:
+def get_artist_count(user_id: int, range: daterange.DateRange | None = None) -> int:
     dated = False
     args = [user_id]
     if range:
@@ -267,7 +264,7 @@ def get_artist_count(user_id : int, range : daterange.DateRange | None = None) -
 
 
 
-def get_album_count(user_id : int, range : daterange.DateRange | None = None) -> int:
+def get_album_count(user_id: int, range: daterange.DateRange | None = None) -> int:
     dated = False
     args = [user_id]
     if range:
@@ -284,7 +281,7 @@ def get_album_count(user_id : int, range : daterange.DateRange | None = None) ->
 
 
 
-def get_song_count(user_id : int, range : daterange.DateRange | None = None) -> int:
+def get_song_count(user_id: int, range: daterange.DateRange | None = None) -> int:
     dated = False
     args = [user_id]
     if range:
@@ -301,7 +298,7 @@ def get_song_count(user_id : int, range : daterange.DateRange | None = None) -> 
 
 
 
-def get_artist_top_albums(user_id : int, artist : int, range : daterange.DateRange | None = None) -> list[dict]:
+def get_artist_top_albums(user_id: int, artist: int, range: daterange.DateRange | None = None) -> list[dict]:
     dated = False
     args = [user_id, artist]
     if range:
@@ -334,7 +331,7 @@ def get_artist_top_albums(user_id : int, artist : int, range : daterange.DateRan
     return top
 
 
-def get_artist_top_songs(user_id : int, artist : int, range : daterange.DateRange | None = None) -> list[dict]:
+def get_artist_top_songs(user_id: int, artist: int, range: daterange.DateRange | None = None) -> list[dict]:
     dated = False
     args = [user_id, artist]
     if range:
@@ -379,7 +376,7 @@ Parameters:
 Returns:
     ListenTime | None
 '''
-def get_artist_total(user_id : int, artist : int, range : daterange.DateRange | None = None) -> listen_time.ListenTime | None:
+def get_artist_total(user_id: int, artist: int, range: daterange.DateRange | None = None) -> listen_time.ListenTime | None:
     dated = False
     args = [user_id, artist]
     if range:
@@ -396,7 +393,7 @@ def get_artist_total(user_id : int, artist : int, range : daterange.DateRange | 
         return listen_time.ListenTime(results[0][0])
     return None
 
-def get_artist_info(artist_id : int) -> dict | None:
+def get_artist_info(artist_id: int) -> dict | None:
     with Opener() as (con, cur):
         cur.execute(QUERIES["get_artist_info"], [artist_id,])
 
@@ -420,7 +417,7 @@ def get_artist_info(artist_id : int) -> dict | None:
     return None
 
 
-def get_top_skipped_songs(user_id : int, range : daterange.DateRange | None = None, top : int | None = None) -> list:
+def get_top_skipped_songs(user_id: int, range: daterange.DateRange | None = None, top: int | None = None) -> list:
     dated = False
     args = [user_id]
     if range:
@@ -449,7 +446,7 @@ def get_top_skipped_songs(user_id : int, range : daterange.DateRange | None = No
     return top
 
 
-def get_top_played_artists(user_id : int, range : daterange.DateRange | None = None, top : int | None = None, images : bool = True) -> list:
+def get_top_played_artists(user_id: int, range: daterange.DateRange | None = None, top: int | None = None, images: bool | None = True) -> list:
     dated = False
     args = [user_id]
     if range:
@@ -488,7 +485,7 @@ def get_top_played_artists(user_id : int, range : daterange.DateRange | None = N
     return top
 
 
-def get_top_played_songs(user_id : int, range : daterange.DateRange | None = None, top : int | None = None) -> list:
+def get_top_played_songs(user_id: int, range: daterange.DateRange | None = None, top: int | None = None) -> list:
     dated = False
     args = [user_id]
     if range:
@@ -517,7 +514,7 @@ def get_top_played_songs(user_id : int, range : daterange.DateRange | None = Non
     return top
 
 
-def add_user(display_name : str, user_spotify_id : str) -> None:
+def add_user(display_name: str, user_spotify_id: str) -> None:
     with open(SQL_DIR + 'user/add_user.sql', 'r') as f:
         query = f.read()
 
@@ -525,7 +522,7 @@ def add_user(display_name : str, user_spotify_id : str) -> None:
         cur.execute(query, [display_name, user_spotify_id, 1])
 
 
-def user_exists(user_spotify_id : str) -> bool:
+def user_exists(user_spotify_id: str) -> bool:
     with open(SQL_DIR + 'user/user_exists.sql', 'r') as f:
         query = f.read()
 
@@ -536,7 +533,7 @@ def user_exists(user_spotify_id : str) -> bool:
 
     return bool(results)
 
-def get_user_id(user_spotify_id : str) -> int | None:
+def get_user_id(user_spotify_id: str) -> int | None:
     with open(SQL_DIR + 'user/user_exists.sql', 'r') as f:
         query = f.read()
 
@@ -547,7 +544,7 @@ def get_user_id(user_spotify_id : str) -> int | None:
 
     return results[0][0]
 
-def is_user_public(user_id : int) -> bool | None:
+def is_user_public(user_id: int) -> bool | None:
     with open(SQL_DIR + 'user/get_user_by_id.sql', 'r') as f:
         query = f.read()
 
@@ -558,14 +555,14 @@ def is_user_public(user_id : int) -> bool | None:
 
     return bool(results[0][3])
 
-def update_public(spotify_id : str, public : bool) -> None:
+def update_public(spotify_id: str, public: bool) -> None:
     with open(SQL_DIR + 'user/update_public.sql', 'r') as f:
         query = f.read()
 
     with Opener() as (con, cur):
         cur.execute(query, [int(public), spotify_id])
 
-def get_last_n(user_id : int, limit: int | None = 50) -> list | None:
+def get_last_n(user_id: int, limit: int | None = 50) -> list | None:
     with Opener() as (con, cur):
         cur.execute(QUERIES["get_last_n"], [user_id, limit])
 
@@ -573,7 +570,7 @@ def get_last_n(user_id : int, limit: int | None = 50) -> list | None:
 
     return results
 
-def get_songs_artists(song_id : int) -> list[str] | None:
+def get_songs_artists(song_id: int) -> list[str] | None:
     with Opener() as (con, cur):
         cur.execute(QUERIES["get_songs_artists"], [song_id,])
 
@@ -588,7 +585,7 @@ def get_songs_artists(song_id : int) -> list[str] | None:
 
     return artists
 
-def get_song_name_by_id(song_id : int) -> str | None:
+def get_song_name_by_id(song_id: int) -> str | None:
     with Opener() as (con, cur):
         cur.execute(QUERIES["get_song_name_by_id"], [song_id,])
 
@@ -606,7 +603,7 @@ Parameters:
 Returns:
     id (int | None) : Id if found, otherwise None.
 """
-def get_id(table : Literal["artists", "albums", "users"], name : str) -> int | None:
+def get_id(table : typing.Literal["artists", "albums", "users"], name : str) -> int | None:
     with Opener() as (con, cur):
         cur.execute("SELECT * FROM '{}' WHERE name = ?".format(table), [name])
         results = cur.fetchall()
@@ -615,7 +612,7 @@ def get_id(table : Literal["artists", "albums", "users"], name : str) -> int | N
         return results[0][0]
     return None
 
-def get_mix_weights(user_id : int, period : daterange.DateRange, limit : int, offset : int = 0) -> list:
+def get_mix_weights(user_id: int, period: daterange.DateRange, limit: int, offset: int | None = 0) -> list:
 
     with open(SQL_DIR + 'mix_top_played.sql', 'r') as f:
         data = f.read();

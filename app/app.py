@@ -1,8 +1,7 @@
+import logging.config
 import configparser
-import logging
 import os
 import base64
-import sys
 
 import flask
 import flask_session
@@ -11,14 +10,60 @@ import waitress
 import spotipy
 import wtforms
 
-import db
-import user_pages
+# App Configuration
+config = configparser.ConfigParser()
+
+dev = False
+if 'env' in os.environ:
+    dev = os.environ['env'] == 'DEV'
+
+if dev:
+    config.read("config-dev.ini")
+else:
+    config.read("config.ini")
+
+LOG_PATH = config['LOGGING']['PATH']
+LOG_LEVEL = config['LOGGING']['LEVEL']
+LOG_FORMAT = '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+
+DATABASE_PATH = config['DATABASE']['PATH']
+
+PORT = config['NETWORK']['PORT']
+
+SCOPES = config["SPOTIFY"]["SCOPES"]
+
+TEMPLATES_PATH = config['FLASK']['TEMPLATES']
+SESSION_SECRET = config['FLASK']['SECRET']
+SESSION_PATH = config['FLASK']['SESSION_PATH']
 
 # Logging Setup
 
-FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
-logging.basicConfig(filename='data/log-dev.log', encoding='utf-8', level=logging.DEBUG, format=FORMAT)
-logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+logging.config.dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': LOG_FORMAT,
+    }},
+    'handlers': {
+        'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        },
+        'file': {
+            'class' : 'logging.FileHandler',
+            'filename': LOG_PATH,
+            'encoding': 'utf-8',
+            'formatter': 'default'
+        }
+    },
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['wsgi', 'file']
+    }
+})
+
+import db
+import user_pages
 
 app = flask.Flask(__name__, static_url_path='', static_folder='static')
 app.register_blueprint(user_pages.user)
@@ -26,31 +71,12 @@ app.register_blueprint(user_pages.user)
 csrf = flask_wtf.csrf.CSRFProtect()
 csrf.init_app(app)
 
-# App Setup
-config = configparser.ConfigParser()
-
-dev = False
-if 'env' in os.environ:
-    logging.info(f"Selected ENV: {os.environ['env']}")
-    dev = os.environ['env'] == 'DEV'
-
-logging.info(f"DEV: {dev}")
-if dev:
-    config.read("config-dev.ini")
-else:
-    config.read("config.ini")
-
-templates_path = config['PATHES']['templates']
-DATABASE = config['PATHES']['DATABASE']
-PORT = config['NETWORK']['PORT']
-
-# Spotipy Setup
-SCOPES = config["SPOTIFY"]["SCOPES"]
+app.logger.info(f"Selected ENV: {os.environ['env']}")
 
 # Session Setup
-app.config['SECRET_KEY'] = base64.b64decode(config["FLASK"]["SECRET"])
+app.config['SECRET_KEY'] = base64.b64decode(SESSION_SECRET)
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = 'app/data/.flask_session/'
+app.config['SESSION_FILE_DIR'] = SESSION_PATH
 flask_session.Session(app)
 
 
@@ -83,7 +109,7 @@ def root():
             print("User not in database, adding...")
 
             # Save token for use in tracking container
-            cache_handler = spotipy.CacheFileHandler(cache_path=f"./data/.{user_info['id']}-cache")
+            cache_handler = spotipy.CacheFileHandler(cache_path=f"data/.{user_info['id']}-cache")
             cache_handler.save_token_to_cache(auth_manager.get_cached_token())
 
             # Add user to database
@@ -135,11 +161,11 @@ def logout():
 
 @app.route('/db/')
 def database():
-    return flask.send_file(DATABASE)
+    return flask.send_file(DATABASE_PATH)
 
 @app.route('/health')
 def health():
-    logging.info('yep')
+    app.logging.info('Health Endpoint Accessed')
     return 'healthy for now :)'
 
 if __name__ == '__main__':

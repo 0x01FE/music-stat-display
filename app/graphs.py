@@ -1,11 +1,8 @@
 import os
 import typing
-import logging
 import datetime
+import logging
 import dateutil.relativedelta
-
-# Mute matplot lib debug logs
-logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
 import matplotlib
 import matplotlib.pyplot
@@ -13,6 +10,8 @@ import matplotlib.pyplot
 import db
 import daterange
 import listen_time
+
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
 matplotlib.use("agg")
 matplotlib.font_manager.fontManager.addfont("app/static/CyberpunkWaifus.ttf")

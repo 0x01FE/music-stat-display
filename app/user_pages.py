@@ -1,6 +1,5 @@
 import configparser
 import itertools
-import calendar
 import datetime
 import dateutil
 import logging
@@ -19,11 +18,11 @@ from user import User
 
 LAST_PLAYLIST_NEGATIVE_WEIGHT = -0.5
 
-# Logger Setup
-logger = logging.getLogger(__name__)
 
 # Config Setup
 config = configparser.ConfigParser()
+
+logger = logging.getLogger(__name__)
 
 dev = False
 if 'env' in os.environ:
@@ -34,7 +33,7 @@ if dev:
 else:
     config.read("config.ini")
 
-TEMPLATE_PATH = config["PATHES"]["TEMPLATES"]
+TEMPLATE_PATH = config["FLASK"]["TEMPLATES"]
 
 # Flask Blueprint Setup
 user = flask.Blueprint(name='user_pages',
@@ -44,11 +43,10 @@ user = flask.Blueprint(name='user_pages',
 
 user.register_blueprint(usermonth.month)
 
-
 @user.url_value_preprocessor
 def is_logged_in(endpoint, values):
 
-    logging.debug(f'User accessing route "{flask.request.url}"')
+    logger.debug(f'User accessing route "{flask.request.url}"')
 
     # Check if a user is logged in
     if 'user' in flask.session:
@@ -58,18 +56,18 @@ def is_logged_in(endpoint, values):
             "pfp_url" : flask.session['user']['images'][0]['url']
         }
 
-        logging.debug(f'User is logged in as {flask.g.current_user["display_name"]}')
+        logger.debug(f'User is logged in as {flask.g.current_user["display_name"]}')
 
     else:
         flask.g.current_user = None
-        logging.debug("User is _NOT_ logged in")
+        logger.debug("User is _NOT_ logged in")
 
     # Check if profile is private
 
     viewed_user: int = values['user_id']
 
     accessing_user: int | None = None
-    if 'id' in flask.g.current_user:
+    if flask.g.current_user:
         accessing_user = flask.g.current_user['id']
 
     if not db.is_user_public(viewed_user) and accessing_user != user:
@@ -81,8 +79,8 @@ def is_logged_in(endpoint, values):
 @user.route('/')
 def user_home(user_id: int):
 
-    logging.info("Geting music stat counts...")
-    logging.info(f'Current user: {flask.g.current_user}')
+    logger.info("Geting music stat counts...")
+    logger.info(f'Current user: {flask.g.current_user}')
     info = {}
     info["artist_count"] = db.get_artist_count(user_id)
     info["album_count"] = db.get_album_count(user_id)
@@ -93,14 +91,14 @@ def user_home(user_id: int):
     six_m_period = daterange.last_n_months(6)
     one_m_period = daterange.last_n_months(1)
 
-    logging.info("Getting times...")
+    logger.info("Getting times...")
     times = {
         "overall" : db.get_total_time(user_id).to_hour_and_seconds(),
         "six_months" : db.get_total_time(user_id, six_m_period).to_hour_and_seconds(),
         # "one_month" : db.get_total_time(user, one_m_period).to_hour_and_seconds()
     }
 
-    logging.info("Getting top everything")
+    logger.info("Getting top everything")
     periods = [
         {
             "name" : "all-time",
@@ -251,29 +249,29 @@ def big_artist_graph(user_id: int, artist: int):
 
 @user.route('/wrapped/<int:year>/')
 def wrapped(user_id: int, year: int):
-    logging.info("User asking for wrapped endpoint")
+    logger.info("User asking for wrapped endpoint")
 
     end = datetime.datetime.strptime(f"12-31-{year}", "%m-%d-%Y")
     start = end - dateutil.relativedelta.relativedelta(years=1)
 
     period = daterange.DateRange(start, end)
 
-    logging.debug("Getting top info")
+    logger.debug("Getting top info")
     top_artists = db.get_top_artists(user_id, period, top=10)
     top_albums = db.get_top_albums(user_id, period, top=10)
     top_songs = db.get_top_songs(user_id, period, top=10)
 
     stats = {}
 
-    logging.debug("Getting total time")
+    logger.debug("Getting total time")
     stats["time"] = db.get_total_time(user_id, period).to_hour_and_seconds()
 
-    logging.debug("Getting counts")
+    logger.debug("Getting counts")
     stats["artist_count"] = db.get_artist_count(user_id, period)
     stats["album_count"] = db.get_album_count(user_id, period)
     stats["song_count"] = db.get_song_count(user_id, period)
 
-    logging.debug("Getting top played things?")
+    logger.debug("Getting top played things?")
     top_played_artists = db.get_top_played_artists(user_id, period, top=10)
     top_played_songs = db.get_top_played_songs(user_id, period, top=10)
 
