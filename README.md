@@ -18,13 +18,16 @@ The website also contains a wrapped for users to look at during any point of the
 This program uses a config.ini file for some basic variables. This is an example of how I have mine set up.
 
 ```ini
-[PATHES]
-templates=app/templates/
-database=data/spotify-listening-data.db
-SQL=app/sql/
+[LOGGING]
+PATH=data/app.log
+LEVEL=DEBUG
+
+[DATABASE]
+PATH=data/spotify-listening-data.db
+QUERIES=app/sql/
 
 [NETWORK]
-port=5000
+port=8080
 
 [SPOTIFY]
 client_id = SPOTIFY_API_CLIENT_ID
@@ -34,6 +37,8 @@ scopes = SPOTIFY_API_SCOPES
 
 [FLASK]
 secret=some hash value for flask_session
+templates=app/templates/
+SESSION_PATH=data/.flask_session/
 ```
 
 If you are connecting this program to the [Spotify Time Tracking Project](https://github.com/0x01FE/spotify-artist-time-tracking) the database path should point to a volume mount that is the same volume mount that the Spotify Time Tracking container uses.
