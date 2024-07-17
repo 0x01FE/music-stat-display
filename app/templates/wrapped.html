@@ -18,19 +18,19 @@
 
         <div class="SummaryContainer">
             <div class="SummaryBlock">
-                <h2><a href="./artists/"><u>Top Artists</u></a></h2>
+                <h2><u>Top Artists</u></h2>
                 {% for artist in top_artists %}
                     <p><img src="{{ artist.icon_url }}">{{ loop.index }}. <a href="./artists/{{ artist.id }}/">{{ artist.name }}</a> : {{ artist.time[0] }} hours {{ artist.time[1] }} minutes</p>
                 {% endfor %}
             </div>
             <div class="SummaryBlock">
-                <h2><a href="./albums/"><u>Top Albums</u></a></h2>
+                <h2><u>Top Albums</u></h2>
                 {% for album in top_albums %}
                     <p><img src="{{ album.cover_art_url }}">{{ loop.index }}. {{ album.title }} by <a href="./artists/{{ album.artist_id }}/">{{ album.artist_name }}</a>: {{ album.time[0] }} hours {{ album.time[1] }} minutes</p>
                 {% endfor %}
             </div>
             <div class="SummaryBlock">
-                <h2><a href="./songs/"><u>Top Songs</u></a></h2>
+                <h2><u>Top Songs</u></h2>
                 {% for song in top_songs %}
                     <p><img src="{{ song.cover_art_url }}">{{ loop.index }}. {{ song.name }} <u>by</u> <a href="./artists/{{ song.artist_id }}/">{{ song.artist_name }}</a>: {{ song.time[0] }} hours {{ song.time[1] }} minutes</p>
                 {% endfor %}

@@ -64,6 +64,7 @@ def overview(user_id: int, year: int, month: int):
 
     return flask.render_template("user_home_month.html",
                                  month_name=calendar.month_name[month],
+                                 month=month,
                                  year=year,
                                  top=top,
                                  info=info,

@@ -8,6 +8,19 @@
     </header>
     <body>
         <button class="change-theme-button" type="button" onclick="changeTheme()">Swap Theme</button>
+
+        {% if month != 1 %}
+            <a href="../{{ month - 1 }}/"><< Previous Month</a> |
+        {% else %}
+            <a href="../../{{ year - 1 }}/12/"><< Previous Month</a> |
+        {% endif %}
+
+        {% if month != 12 %}
+            <a href="../{{ month + 1 }}/">Next Month >></a>
+        {% else %}
+            <a href="../../{{ year + 1 }}/1/">Next Month >></a>
+        {% endif %}
+
         <div class="HeaderContainer">
             <h1>{{ month_name }} {{ year }}</h1>
             <span id="hours">{{ times[0] }}</span> <b>hours</b> <span id="minutes">{{ times[1] }}</span> <b>minutes</b>

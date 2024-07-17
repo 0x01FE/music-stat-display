@@ -57,7 +57,7 @@ logging.config.dictConfig({
         }
     },
     'root': {
-        'level': 'DEBUG',
+        'level': LOG_LEVEL,
         'handlers': ['wsgi', 'file']
     }
 })
@@ -139,7 +139,10 @@ def settings():
     else:
         return flask.redirect('/')
 
-    return flask.render_template('user_settings.html', display_name=display_name, user_pfp_url=user_pfp_url, form=form)
+    return flask.render_template('user_settings.html',
+                                 display_name=display_name,
+                                 user_pfp_url=user_pfp_url,
+                                 form=form)
 
 @app.route('/settings/save/', methods=['POST'])
 def settings_save():
