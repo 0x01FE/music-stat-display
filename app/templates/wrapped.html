@@ -20,7 +20,29 @@
             <div class="SummaryBlock">
                 <h2><u>Top Artists</u></h2>
                 {% for artist in top_artists %}
-                    <p><img src="{{ artist.icon_url }}">{{ loop.index }}. <a href="./artists/{{ artist.id }}/">{{ artist.name }}</a> : {{ artist.time[0] }} hours {{ artist.time[1] }} minutes</p>
+                    <p>
+                        {% if "rank_change" in artist %}
+                            {% if artist.rank_change > 0 %}
+                                <span class="positive"> + {{ artist.rank_change }}</span>
+                            {% elif artist.rank_change < 0 %}
+                                <span class="negative"> - {{ artist.rank_change * -1 }}</span>
+                            {% else %}
+                                <span class="neutral">&nbsp;&nbsp;{{ artist.rank_change }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="neutral">NEW</span>
+                        {% endif %}
+                        <img src="{{ artist.icon_url }}">{{ loop.index }}. <a href="./artists/{{ artist.id }}/">{{ artist.name }}</a> : {{ artist.time[0] }} hours {{ artist.time[1] }} minutes
+                    {% if "time_change" in artist %}
+                        {% if artist.time_change > 0 %}
+                            <span class="positive"> + {{ artist.time_change }}</span> hours
+                        {% elif artist.time_change < 0 %}
+                            <span class="negative"> - {{ artist.time_change * -1 }}</span> hours
+                        {% else %}
+                            <span class="neutral">&nbsp;&nbsp;{{ artist.time_change }}</span>
+                        {% endif %}
+                    {% endif %}
+                    </p>
                 {% endfor %}
             </div>
             <div class="SummaryBlock">

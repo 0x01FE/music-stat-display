@@ -249,3 +249,14 @@ body .selectedButton {
     margin: 0.15em;
 }
 
+.positive {
+    color: lime;
+}
+
+.negative {
+    color: red;
+}
+
+.neutral {
+    color: grey;
+}

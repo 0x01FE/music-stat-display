@@ -7,6 +7,7 @@ import random
 import json
 import os
 
+import dateutil.relativedelta
 import spotipy
 import flask
 
@@ -256,8 +257,31 @@ def wrapped(user_id: int, year: int):
 
     period = daterange.DateRange(start, end)
 
-    logger.debug("Getting top info")
+    logger.debug("Getting top artists...")
     top_artists = db.get_top_artists(user_id, period, top=10)
+
+    logger.debug("Getting last years top artists...")
+
+    diff = dateutil.relativedelta.relativedelta(years=1)
+    last_top_artists = db.get_top_artists(user_id, daterange.DateRange(start - diff, end - diff), top=10)
+
+    logging.debug(f'this year {top_artists}')
+    logging.debug(f'last year {last_top_artists}')
+
+    # Compare rankings & time
+    for i in range(0, len(top_artists)):
+        current = top_artists[i]["id"]
+
+        for j in range(0, len(last_top_artists)):
+            if current == last_top_artists[j]["id"]:
+                top_artists[i]["rank_change"] = j - i
+
+                current_time = top_artists[i]["time"]
+                last_time = last_top_artists[j]["time"]
+
+                top_artists[i]["time_change"] =  current_time[0] - last_time[0]
+
+    logger.debug("Getting other top info (albums / songs)")
     top_albums = db.get_top_albums(user_id, period, top=10)
     top_songs = db.get_top_songs(user_id, period, top=10)
 

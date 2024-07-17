@@ -43,6 +43,12 @@ class DateRange:
         self.start = datetime.datetime.strptime(f"{year}-{month}", "%Y-%m")
         return True
 
+    def __sub__(self, other: datetime.datetime | dateutil.relativedelta.relativedelta):
+        copy = self
+
+        copy.end - other
+        copy.start - other
+        return copy
 
 
 def monthly_ranges(months : int) -> list[DateRange]:
