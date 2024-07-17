@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link id="style" rel="stylesheet" href="{{ url_for('static', filename='style-redo.css') }}">
+        <script>
+            let times = JSON.parse('{{ times | tojson }}');
+        </script>
+        <script src="{{ url_for('static', filename='theme-changer.js') }}"></script>
+        <script src="{{ url_for('static', filename='artist.js') }}"></script>
+        <script src="{{ url_for('static', filename='graphs.js') }}"></script>
+        <title>Overview - All Time</title>
+    </header>
+    <body>
+        <button class="change-theme-button" type="button" onclick="changeTheme()">Swap Theme</button>
+        <div class="HeaderContainer">
+            <h1>Music Stat Display Home</h1>
+            <span id="hours">{{ times.overall[0] }}</span> <b>hours</b> <span id="minutes">{{ times.overall[1] }}</span> <b>minutes</b>
+            {{ info.artist_count }} <b>Artists</b><br>
+            {{ info.album_count }} <b>Albums</b><br>
+            {{ info.song_count }} <b>Songs</b><br>
+            <a href="./month/{{ year }}/{{ month }}/"><u>Check this month's stats</u></a>
+        </div>
+
+        {% if user_info != None %}
+            <div class="UserPfp"><a href="/settings/"><img src="{{ user_info.pfp_url }}"></a></div>
+            <div class="UserName"><a href="/settings/">{{ user_info.display_name }}</a></div>
+        {% endif %}
+
+
+        <div id="TimePeriodSelectionBar" class="TimePeriodSelectionBar">
+            <h2>Time Period</h2>
+            <button id="b1" onclick="allTime(this.id)">All Time</button><br>
+            <button id="b2" onclick="sixMonths(this.id)">Past 6 Months</button><br>
+            <button id="b3" onclick="fourWeeks(this.id)">Past 4 Weeks</button>
+        </div>
+
+        {% for period in periods %}
+            <div id="{{ period.name }}">
+                <div class="SummaryContainer">
+                    <div class="SummaryBlock">
+                        <h2><a href="./artists/"><u>Top Artists</u></a></h2>
+                        {% for artist in period.top_artists %}
+                            <p><img src="{{ artist.icon_url }}">{{ loop.index }}. <a href="./artists/{{ artist.id }}/">{{ artist.name }}</a> : {{ artist.time[0] }} hours {{ artist.time[1] }} minutes</p>
+                        {% endfor %}
+                    </div>
+                    <div class="SummaryBlock">
+                        <h2><a href="./albums/"><u>Top Albums</u></a></h2>
+                        {% for album in period.top_albums %}
+                            <p><img src="{{ album.cover_art_url }}">{{ loop.index }}. {{ album.title }} by <a href="./artists/{{ album.artist_id }}/">{{ album.artist_name }}</a>: {{ album.time[0] }} hours {{ album.time[1] }} minutes</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="SummaryContainer">
+                    <div class="SummaryBlock">
+                        <h2><a href="./songs/"><u>Top Songs</u></a></h2>
+                        {% for song in period.top_songs %}
+                            <p><img src="{{ song.cover_art_url }}">{{ loop.index }}. {{ song.name }} <u>by</u> <a href="./artists/{{ song.artist_id }}/">{{ song.artist_name }}</a>: {{ song.time[0] }} hours {{ song.time[1] }} minutes</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <select id="graph-select" class="GraphsSelect" onchange="draw_graphs()">
+            <option value="DailyTimeGraph">Daily Listening Time</option>
+            <option value="WeeklyTimeGraph">Weekly Listening Time</option>
+            <option value="MonthlyTimeGraph">Monthly Listening Time</option>
+        </select>
+
+        <div id="graphs" class="Graphs">
+            <div id="DailyTimeGraph" style="display: block;">
+                <img src="/user-{{ info.id }}-daily.png">
+            </div>
+            <div id="WeeklyTimeGraph" style="display: none;">
+                <img src="/user-{{ info.id }}-weekly.png">
+            </div>
+            <div id="MonthlyTimeGraph" style="display: none;">
+                <img src="/user-{{ info.id }}-monthly.png">
+            </div>
+        </div>
+
+        <div>
+            <button>Mix Me A Playlist</button>
+        </div>
+
+    </body>
+</html>

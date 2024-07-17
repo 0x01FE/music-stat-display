@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style-redo.css') }}">
+        <script src="{{ url_for('static', filename='theme-changer.js') }}"></script>
+        <title>Wrapped {{ year }}</title>
+    </header>
+    <body>
+        <div class="HeaderContainer">
+            <h1>{{ year }} Wrapped</h1>
+            <div class="TitleBlock">Total Listening Time: {{ stats.time[0] }} hours {{ stats.time[1] }} minutes</div>
+            <div class="TitleBlock">Total Artists: {{ stats.artist_count }}</div>
+            <div class="TitleBlock">Total Albums: {{ stats.album_count }}</div>
+            <div class="TitleBlock">Total Songs: {{ stats.song_count }}</div>
+        </div>
+
+
+        <div class="SummaryContainer">
+            <div class="SummaryBlock">
+                <h2><u>Top Artists</u></h2>
+                {% for artist in top_artists %}
+                    <p><img src="{{ artist.icon_url }}">{{ loop.index }}. <a href="./artists/{{ artist.id }}/">{{ artist.name }}</a> : {{ artist.time[0] }} hours {{ artist.time[1] }} minutes</p>
+                {% endfor %}
+            </div>
+            <div class="SummaryBlock">
+                <h2><u>Top Albums</u></h2>
+                {% for album in top_albums %}
+                    <p><img src="{{ album.cover_art_url }}">{{ loop.index }}. {{ album.title }} by <a href="./artists/{{ album.artist_id }}/">{{ album.artist_name }}</a>: {{ album.time[0] }} hours {{ album.time[1] }} minutes</p>
+                {% endfor %}
+            </div>
+            <div class="SummaryBlock">
+                <h2><u>Top Songs</u></h2>
+                {% for song in top_songs %}
+                    <p><img src="{{ song.cover_art_url }}">{{ loop.index }}. {{ song.name }} <u>by</u> <a href="./artists/{{ song.artist_id }}/">{{ song.artist_name }}</a>: {{ song.time[0] }} hours {{ song.time[1] }} minutes</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="SummaryContainer">
+            <div class="SummaryBlock">
+                <h2><u>Top Played Artists</u></h2>
+                {% for artist in top_played_artists %}
+                    <p><img src="{{ artist.icon_url }}">{{ loop.index }}. <a href="../../artists/{{ artist.id }}/">{{ artist.name }}</a> : {{ artist.plays }} Plays</p>
+                {% endfor %}
+            </div>
+            <div class="SummaryBlock">
+                <h2><u>Top Played Songs</u></h2>
+                {% for song in top_played_songs %}
+                    <p>{{ loop.index }}. {{ song[2] }} <u>by</u> <a href="../../artists/{{ song[1] }}/">{{ song[0] }}</a> : {{ song[3] }} Plays</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="SummaryContainer">
+            <div class="SummaryBlock">
+                <h2><u>Your Favorite Least Favorite Songs</u></h2>
+                {% for skip_song in top_skipped_songs %}
+                    <p>{{ loop.index }}. {{ skip_song[2] }} <u>by</u> <a href="../../artists/{{ skip_song[0] }}/">{{ skip_song[1] }}</a>: {{ skip_song[3] }} Skips</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </body>
+</html>

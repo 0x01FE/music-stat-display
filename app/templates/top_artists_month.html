@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link id="style" rel="stylesheet" href="{{ url_for('static', filename='style-redo.css') }}">
+        <script src="{{ url_for('static', filename='theme-changer.js') }}"></script>
+        <title>Top Artists - {{ month_name}} {{ year }}</title>
+    </header>
+    <body>
+        <header style="position:absolute;">{{ month_name}} {{ year }}</header>
+
+        <h1 class="Top-X-Header">Top Artists</h1>
+
+        <div class="SummaryContainer">
+            <div class="SummaryBlock SingleSummaryBlock">
+                {% for artist in top %}
+                    <p>{{ loop.index }}. <a href="{{ artist.id }}">{{ artist.name }}</a> : {{ artist.time[0] }} hours {{ artist.time[1] }} minutes</p>
+                {% endfor %}
+            </div>
+        </div>
+    </body>
+</html>

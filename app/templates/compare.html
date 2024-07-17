@@ -1,0 +1,34 @@
+<!--
+    This file is meant to compare the dbs last 50 plays for a user vs Spotify's last 50 plays to help observe how accurate the listener is
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <title>Compare</title>
+    </header>
+    <body>
+        <header>Accuracy {{ accuracy }}%</header>
+        <div class="Artist">
+            <div class="Block">
+                <header>Last 50 by Database</header>
+                {% for entry in database_50 %}
+                    <p>{{ entry }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="Block">
+                <header>Last 50 by Spotify</header>
+                {% for entry in spotify_50 %}
+                    <p>{{ entry }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </body>
+</html>
+
+
+

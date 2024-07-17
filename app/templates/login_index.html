@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <title>Index</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </header>
+    <body>
+        <div class="BigTitleBlock">Music Stat Display</div>
+
+        <p>This is a program that can track your Spotify listening history. Too track your history the program needs to constantly monitor what your Spotify account is listening too. If you would like to opt into this please press the sign up button. This program <u>WILL</u> store your listening data / history. This data can be made private by going into your user settings, and will require you to log in to view your data.</p>
+
+        <h2><a href="{{ auth_url }}">Sign up / Log in</a></h2>
+    </body>
+</html>

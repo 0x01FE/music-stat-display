@@ -1,6 +1,6 @@
 __pycache__
 *.code-workspace
-config.ini
+*.ini
 reports/
 reports/*
 .vscode
@@ -8,4 +8,9 @@ jackson/*
 *.png
 *.yml
 *.sh
-
+.flask_session
+.cache
+*.json
+data
+*.log
+!.attachments/*.png

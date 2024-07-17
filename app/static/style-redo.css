@@ -1,0 +1,251 @@
+@import url('https://fonts.googleapis.com/css?family=PT%20Mono:700|PT%20Mono:400');
+@font-face {
+    font-family:cyberpunkwaifus;
+    src:url(../CyberpunkWaifus.woff) format('woff');
+    font-weight:400;
+    font-style:normal;
+}
+
+:root {
+    --background-color: #fff;
+    --secondary-color: hsla(0, 0%, 60%, 50%);
+
+    --link-color: hsl(216, 98%, 52%);
+    --link-hover-color: hsl(216, 91%, 42%);
+    --header-link-color: hsl(0, 0%, 25%);
+    --header-link-hover-color: hsl(0, 0%, 50%);
+
+    --body-text-size: 15px;
+    --body-text-color: #000;
+    --cover-art-size: 50px;
+
+    --border-display: hidden;
+    --border-radius: 15px;
+    --border-color: hsla(0, 0%, 0%, 25%);
+
+    --button-color: hsl(0, 0%, 75%);
+    --selected-button-color: hsl(212, 60%, 58%);
+
+    --song-color: #000;
+    --album-color: #000;
+    --artist-color: #000;
+}
+
+body {
+    font-family: 'PT Mono';
+    color: var(--body-text-color);
+    background-color: var(--background-color);
+    font-size: var(--body-text-size);
+    font-weight: 400;
+}
+
+h1, h2, h3 {
+    /* font-family:cyberpunkwaifus; */
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.HeaderContainer {
+    text-align: center;
+
+    margin: 0.5em 30%;
+    padding: 0.5em;
+
+    border-style: var(--border-display);
+    border-color: var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.change-theme-button {
+    position: absolute;
+    top: 3.5em;
+    border: none;
+    text-decoration: none;
+    background-color: var(--button-color);
+    padding: 0.5em;
+    margin: 1px;
+}
+
+.change-theme-button:hover {
+    border: solid black 1px;
+    margin: 0;
+}
+
+.HeaderContainer h1 {
+    font-family: cyberpunkwaifus;
+}
+
+.SettingBlock {
+    font-weight: bold;
+    font-size: 24px;
+    padding: 15px;
+    border-style: solid;
+    border-color: white;
+    margin: 5px auto;
+    /* text-align: center; */
+    /* display:inline-block; */
+    /* right: 50%; */
+    width: 25%;
+}
+
+.SummaryContainer {
+    display: flex;
+    flex-direction: row;
+    margin: 0 2.5%;
+    padding: 1em;
+    justify-content: center;
+
+    border-style: var(--border-display);
+    border-color: var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.SummaryBlock {
+    width: fit-content;
+    margin: 0 0.5em;
+    padding: 1em;
+
+    max-width: 45%;
+
+    line-height: 2em;
+
+    border-style: var(--border-display);
+    border-color: var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.SummaryBlock h2 {
+    text-align: center;
+    font-size: 30px;
+    font-weight: 900;
+}
+
+.SummaryBlock h2 a {
+    color: var(--header-link-color);
+}
+
+.SummaryBlock h2 a:hover {
+    color: var(--header-link-hover-color);
+}
+
+.SummaryBlock img {
+    height: var(--cover-art-size);
+    width: var(--cover-art-size);
+    margin: 0 0;
+    padding: 0 0;
+    margin-right: 10px;
+
+    vertical-align: middle;
+    margin-bottom: 0.25em;
+}
+
+body .SingleSummaryBlock {
+    max-width: 60%;
+}
+
+.UserName {
+    float: right;
+    margin-top: 16px;
+    margin-right: 5px;
+}
+
+.UserPfp {
+    overflow: hidden;
+    float: right;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.UserPfp img {
+    width: auto;
+    height: 100%;
+}
+
+a {
+    color: var(--link-color);
+    text-align: center;
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--link-hover-color);
+}
+
+.selector {
+    color: #ed145b;
+    text-align: center;
+    text-decoration: none;
+}
+
+.selector:hover {
+    color: #8b8fc6;
+}
+
+.TimePeriodSelectionBar {
+    box-shadow: 3px -3px grey, 3px 3px grey;
+
+    position: absolute;
+    top: 8em;
+    left: 0;
+    max-width: fit-content;
+    text-align: center;
+    background-color: var(--secondary-color);
+
+    border-radius: 0 12.5% 12.5% 0;
+    padding: 0.5em;
+}
+
+.TimePeriodSelectionBar button {
+    min-width: 10em;
+    border: none;
+    margin: 1px;
+
+    padding: 1em;
+    background-color: var(--button-color);
+}
+
+.TimePeriodSelectionBar button:hover {
+    margin: 0px;
+    border: 1px black solid;
+}
+
+body .selectedButton {
+    background-color: var(--selected-button-color);
+}
+
+.Top-X-Header {
+    text-align: center;
+    font-family: cyberpunkwaifus;
+}
+
+
+/* ARTIST PAGE CSS */
+
+.ArtistHeaderContainer {
+    text-align: center;
+
+    margin: 0.5em 30%;
+    padding: 0.5em;
+
+    border-style: var(--border-display);
+    border-color: var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.ArtistHeaderContainer img {
+    height: 250px;
+    width: 250px;
+    border-radius: 50%;
+}
+
+/* Graphs */
+
+.Graphs {
+    text-align: center;
+}
+
+.GraphsSelect {
+    padding: 0.1em;
+    margin: 0.15em;
+}
+
