@@ -95,7 +95,7 @@ def user_home(user_id: int):
     times = {
         "overall" : db.get_total_time(user_id).to_hour_and_seconds(),
         "six_months" : db.get_total_time(user_id, six_m_period).to_hour_and_seconds(),
-        # "one_month" : db.get_total_time(user, one_m_period).to_hour_and_seconds()
+        "one_month" : db.get_total_time(user_id, one_m_period).to_hour_and_seconds()
     }
 
     logger.info("Getting top everything")
